@@ -76,9 +76,21 @@ func main() {
 
 		fmt.Println("Beginning download of MPM. Please wait.")
 
-		// Download MPM. It needs to be in the loop because of mpmDownloadPath.
+		// Check if MPM file already exists in the selected directory.
 		fileName := mpmDownloadPath + "/mpm"
-		err := downloadFile(mpmURL, fileName)
+		_, err := os.Stat(fileName)
+		if err == nil {
+			fmt.Printf("MPM already exists in this directory. Would you like to overwrite it? (y/n): ")
+			var overwriteMPM string
+			fmt.Scanln(&overwriteMPM)
+			if overwriteMPM == "n" || overwriteMPM == "N" {
+				fmt.Println("Skipping download. Please select a different directory.")
+				break // Hopefully your MPM isn't old junk.
+			}
+		}
+
+		// Download MPM
+		err = downloadFile(mpmURL, fileName)
 		if err != nil {
 			fmt.Println("Failed to download MPM. ", err)
 			continue // Go back to the beginning of the loop
