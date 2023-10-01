@@ -74,16 +74,16 @@ func main() {
 			}
 		}
 
-		fmt.Println("Download Path:", mpmDownloadPath)
+		fmt.Println("Beginning download of MPM. Please wait.")
 
 		// Download MPM. It needs to be in the loop because of mpmDownloadPath.
 		fileName := mpmDownloadPath + "/mpm"
 		err := downloadFile(mpmURL, fileName)
 		if err != nil {
-			fmt.Println("Failed to download the file:", err)
+			fmt.Println("Failed to download MPM. ", err)
 			continue // Go back to the beginning of the loop
 		}
-		fmt.Println("File downloaded successfully.")
+		fmt.Println("MPM downloaded successfully.")
 
 		break // Exit the loop
 	}
