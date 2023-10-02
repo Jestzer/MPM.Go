@@ -84,7 +84,7 @@ func main() {
 			var overwriteMPM string
 			fmt.Scanln(&overwriteMPM)
 			if overwriteMPM == "n" || overwriteMPM == "N" {
-				fmt.Println("Skipping download. Please select a different directory.")
+				fmt.Println("Skipping download.")
 				break // Hopefully your MPM isn't old junk.
 			}
 		}
