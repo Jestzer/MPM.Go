@@ -1,10 +1,12 @@
 package main
 
 import (
+	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
@@ -74,8 +76,6 @@ func main() {
 			}
 		}
 
-		fmt.Println("Beginning download of MPM. Please wait.")
-
 		// Check if MPM file already exists in the selected directory.
 		fileName := mpmDownloadPath + "/mpm"
 		_, err := os.Stat(fileName)
@@ -89,6 +89,8 @@ func main() {
 			}
 		}
 
+		fmt.Println("Beginning download of MPM. Please wait.")
+
 		// Download MPM
 		err = downloadFile(mpmURL, fileName)
 		if err != nil {
@@ -97,8 +99,20 @@ func main() {
 		}
 		fmt.Println("MPM downloaded successfully.")
 
+		// Unzip the file if using Windows or macOS
+		if os := runtime.GOOS; os == "windows" || os == "darwin" {
+			unzipPath := mpmDownloadPath + "/mpm"
+			err := unzipFile(fileName, unzipPath)
+			if err != nil {
+				fmt.Println("Failed to unzip the file:", err)
+				continue // Go back to the beginning of the loop
+			}
+			fmt.Println("MPM file unzipped successfully.")
+		}
+
 		break // Exit the loop
 	}
+
 }
 
 // Function to download a file from the given URL and save it to the specified path.
@@ -118,6 +132,42 @@ func downloadFile(url string, filePath string) error {
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Function to unzip MPM, since we have to on Windows and macOS.
+func unzipFile(src, dest string) error {
+	reader, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	for _, file := range reader.File {
+		path := filepath.Join(dest, file.Name)
+
+		if file.FileInfo().IsDir() {
+			os.MkdirAll(path, file.Mode())
+			continue
+		}
+
+		fileReader, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer fileReader.Close()
+
+		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		if err != nil {
+			return err
+		}
+		defer targetFile.Close()
+
+		if _, err := io.Copy(targetFile, fileReader); err != nil {
+			return err
+		}
 	}
 
 	return nil
