@@ -16,6 +16,7 @@ func main() {
 	var operatingSystem string
 	var defaultTMP string
 	var mpmURL string
+	var mpmDownloadNeeded bool
 
 	// Figure out your OS.
 	switch userOS := runtime.GOOS; userOS {
@@ -43,11 +44,12 @@ func main() {
 		return
 	}
 
-	// Keeping these throughout for sanity's sake.
+	// Keeping these for now for sanity's sake.
 	fmt.Println("Operating System:", operatingSystem)
 	fmt.Println("MPM URL:", mpmURL)
+	mpmDownloadNeeded = true
 
-	// Figure out where you want actual MPM to go to.
+	// Figure out where you want actual MPM to go.
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. Press Enter to use \"" + defaultTMP + "\": ")
 		var mpmDownloadPath string
@@ -65,50 +67,63 @@ func main() {
 					err := os.MkdirAll(mpmDownloadPath, 0755)
 					if err != nil {
 						fmt.Println("Failed to create the directory:", err, "Please select a different directory.")
-						continue // Go back to the beginning of the loop
+						continue
 					}
 					fmt.Println("Directory created successfully.")
 				} else {
 					fmt.Println("Directory creation skipped. Please select a different directory.")
-					continue // Go back to the beginning of the loop
+					continue
 				}
 			} else if err != nil {
 				fmt.Println("Error checking the directory:", err, "Please select a different directory.")
-				continue // Go back to the beginning of the loop
+				continue
 			}
 		}
 
-		// Check if MPM file already exists in the selected directory.
+		// Check if MPM already exists in the selected directory.
 		fileName := mpmDownloadPath + "/mpm"
 		_, err := os.Stat(fileName)
 		if err == nil {
-			fmt.Printf("MPM already exists in this directory. Would you like to overwrite it? This will also overwrite the directory 'mpm-contents' (y/n): ")
+			fmt.Printf("MPM already exists in this directory. Would you like to overwrite it? This will also overwrite the directory 'mpm-contents' if it already exists. (y/n): ")
 			var overwriteMPM string
 			fmt.Scanln(&overwriteMPM)
 			if overwriteMPM == "n" || overwriteMPM == "N" {
 				fmt.Println("Skipping download.")
-				break // Hopefully your MPM isn't old junk.
+				if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+					unzipPath := filepath.Join(mpmDownloadPath, "mpm-contents")
+
+					// Double-check this line below later. Doesn't seem to work.
+					if _, err := os.Stat(unzipPath); err == nil {
+						break
+					} else {
+						mpmDownloadNeeded = false
+					}
+				} else {
+					break
+				}
 			}
 		}
 
-		fmt.Println("Beginning download of MPM. Please wait.")
-
 		// Download MPM.
-		err = downloadFile(mpmURL, fileName)
-		if err != nil {
-			fmt.Println("Failed to download MPM. ", err)
-			continue // Go back to the beginning of the loop
+		if !mpmDownloadNeeded {
+			fmt.Println("Beginning download of MPM. Please wait.")
+			err = downloadFile(mpmURL, fileName)
+			if err != nil {
+				fmt.Println("Failed to download MPM. ", err)
+				continue // Go back to the beginning of the loop
+			}
+			fmt.Println("MPM downloaded successfully.")
 		}
-		fmt.Println("MPM downloaded successfully.")
 
 		// Unzip the file if using Windows or macOS.
 		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 			fmt.Println("Beginning extraction of MPM.")
 			unzipPath := filepath.Join(mpmDownloadPath, "mpm-contents")
 
-			// Check if the "mpm-contents" folder already exists
+			// Check if the "mpm-contents" directory already exists.
 			if _, err := os.Stat(unzipPath); err == nil {
-				// Delete the existing "mpm-contents" folder
+
+				// Delete the existing "mpm-contents" directory if it's there.
 				err := os.RemoveAll(unzipPath)
 				if err != nil {
 					fmt.Println("Failed to delete the existing 'mpm-contents' directory:", err)
@@ -124,11 +139,11 @@ func main() {
 
 			err = unzipFile(fileName, unzipPath)
 			if err != nil {
-				fmt.Println("Failed to unzip MPM:", err)
+				fmt.Println("Failed to extract MPM:", err)
 				continue // Go back to the beginning of the loop
 			}
 
-			fmt.Println("MPM file unzipped successfully.")
+			fmt.Println("MPM extracted successfully.")
 		}
 
 		break // Exit the loop
