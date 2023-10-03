@@ -17,6 +17,8 @@ func main() {
 	var defaultTMP string
 	var mpmURL string
 	var mpmDownloadNeeded bool
+	var release string
+	var defaultPath string
 
 	// Figure out your OS.
 	switch userOS := runtime.GOOS; userOS {
@@ -159,7 +161,7 @@ func main() {
 
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
-		release, _ := reader.ReadString('\n')
+		release, _ = reader.ReadString('\n')
 		release = strings.TrimSpace(release)
 		if release == "" {
 			release = defaultRelease
@@ -182,6 +184,44 @@ func main() {
 
 		fmt.Println("Invalid release. Enter a release between R2017b-R2023b.")
 	}
+	fmt.Println("release selected outside of loop:", release)
+
+	//Product selection.
+	fmt.Println("Enter the products you would like to install. Use the same syntax as MPM to specify products. Press Enter to install all products.")
+
+	productsInput, _ := reader.ReadString('\n')
+	productsInput = strings.TrimSpace(productsInput)
+
+	var products []string
+
+	if productsInput == "" {
+		products = []string{"MATLAB", "MATLAB_Parallel_Server"}
+	} else {
+		products = strings.Fields(productsInput)
+	}
+
+	fmt.Println("Products to install:", products)
+
+	fmt.Println("Enter the full path where you would like to install these products. Press Enter to install to default path.")
+
+	installPath, _ := reader.ReadString('\n')
+	installPath = strings.TrimSpace(installPath)
+
+	// Set the path based on your OS.
+	if operatingSystem == "maci64" {
+		defaultPath = "/Applications/MATLAB_" + release
+	}
+	if operatingSystem == "win64" {
+		defaultPath = "C:\\Program Files\\MATLAB\\" + release
+	}
+	if operatingSystem == "glnxa64" {
+		defaultPath = "/usr/local/MATLAB/" + release
+	}
+	if installPath == "" {
+		installPath = defaultPath
+	}
+
+	fmt.Println("Installation path:", installPath)
 
 	// Next steps:
 	// - May need to chmod mpm on Linux. Should test this soon.
