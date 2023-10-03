@@ -51,7 +51,8 @@ func main() {
 
 	// Figure out where you want actual MPM to go.
 	for {
-		fmt.Print("Enter the path to the directory where you would like MPM to download to. Press Enter to use \"" + defaultTMP + "\": ")
+		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
+			"Press Enter to use \"" + defaultTMP + "\": ")
 		var mpmDownloadPath string
 		fmt.Scanln(&mpmDownloadPath)
 
@@ -84,7 +85,8 @@ func main() {
 		fileName := mpmDownloadPath + "/mpm"
 		_, err := os.Stat(fileName)
 		if err == nil {
-			fmt.Printf("MPM already exists in this directory. Would you like to overwrite it? This will also overwrite the directory 'mpm-contents' if it already exists. (y/n): ")
+			fmt.Printf("MPM already exists in this directory. Would you like to overwrite it? " +
+				"This will also overwrite the directory 'mpm-contents' if it already exists. (y/n): ")
 			var overwriteMPM string
 			fmt.Scanln(&overwriteMPM)
 			if overwriteMPM == "n" || overwriteMPM == "N" {
@@ -92,11 +94,11 @@ func main() {
 				if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 					unzipPath := filepath.Join(mpmDownloadPath, "mpm-contents")
 
-					// Double-check this line below later. Doesn't seem to work.
-					if _, err := os.Stat(unzipPath); err == nil {
-						break
-					} else {
+					// Skip download if you want to use your existing MPM, but it is not extracted.
+					if _, err := os.Stat(unzipPath); os.IsNotExist(err) {
 						mpmDownloadNeeded = false
+					} else {
+						break
 					}
 				} else {
 					break
@@ -105,7 +107,7 @@ func main() {
 		}
 
 		// Download MPM.
-		if !mpmDownloadNeeded {
+		if mpmDownloadNeeded {
 			fmt.Println("Beginning download of MPM. Please wait.")
 			err = downloadFile(mpmURL, fileName)
 			if err != nil {
@@ -142,10 +144,8 @@ func main() {
 				fmt.Println("Failed to extract MPM:", err)
 				continue // Go back to the beginning of the loop
 			}
-
 			fmt.Println("MPM extracted successfully.")
 		}
-
 		break // Exit the loop
 	}
 
@@ -182,6 +182,16 @@ func main() {
 
 		fmt.Println("Invalid release. Enter a release between R2017b-R2023b.")
 	}
+
+	// Next steps:
+	// - May need to chmod mpm on Linux. Should test this soon.
+	// - Ask which products they'd like to install.
+	// - Painstakingly find out all products can be installed for each release on Windows and macOS.
+	// - Figure out the most efficient way to do the above, including Linux.
+	// - Ask for an installation path.
+	// - Ask if you want to use a license file.
+	// - Kick off installation.
+	// - Place the license file if you asked to use one.
 }
 
 // Function to download a file from the given URL and save it to the specified path.
@@ -217,8 +227,8 @@ func unzipFile(src, dest string) error {
 	for _, file := range reader.File {
 		path := filepath.Join(dest, file.Name)
 
-		// Reconstruct the path on Windows to ensure proper subdirectories are created.
-		// May also need to be done on macOS. Don't know yet.
+		// Reconstruct the file path on Windows to ensure proper subdirectories are created.
+		// Don't know why other OSes don't need this.
 		if runtime.GOOS == "windows" {
 			path = filepath.Join(dest, file.Name)
 			path = filepath.FromSlash(path)
