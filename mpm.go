@@ -73,6 +73,8 @@ func main() {
 				var createDir string
 				fmt.Scanln(&createDir)
 
+				// Don't ask me why I've only put this here so far.
+				// I'll probably put it in other places that don't ask for file names/paths.
 				if createDir == "exit" || createDir == "Exit" || createDir == "quit" || createDir == "Quit" {
 					os.Exit(0)
 				}
