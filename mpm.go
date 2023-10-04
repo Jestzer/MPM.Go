@@ -137,7 +137,7 @@ func main() {
 			err = downloadFile(mpmURL, fileName)
 			if err != nil {
 				fmt.Println(red("Failed to download MPM. ", err))
-				continue // Go back to the beginning of the loop
+				continue
 			}
 			fmt.Println("MPM downloaded successfully.")
 		}
@@ -155,25 +155,25 @@ func main() {
 					err := os.RemoveAll(unzipPath)
 					if err != nil {
 						fmt.Println(red("Failed to delete the existing 'mpm-contents' directory:", err))
-						continue // Go back to the beginning of the loop
+						continue
 					}
 				}
 
 				err := os.MkdirAll(unzipPath, 0755)
 				if err != nil {
 					fmt.Println(red("Failed to create the directory:", err))
-					continue // Go back to the beginning of the loop
+					continue
 				}
 
 				err = unzipFile(fileName, unzipPath)
 				if err != nil {
 					fmt.Println(red("Failed to extract MPM:", err))
-					continue // Go back to the beginning of the loop
+					continue
 				}
 				fmt.Println("MPM extracted successfully.")
 			}
 		}
-		break // Exit the loop
+		break
 	}
 
 	// Ask the user which release they'd like to install.
@@ -253,7 +253,7 @@ func main() {
 
 	fmt.Println("Installation path:", installPath)
 
-	// Option license file selection.
+	// Optional license file selection.
 	fmt.Print("If you have a license file you'd like to include in your installation, " +
 		"please provide the full path to the existing license file.\n> ")
 
@@ -285,7 +285,6 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		// Handle any errors that occurred during execution
 		fmt.Println("Error executing mpm:", err)
 	}
 
