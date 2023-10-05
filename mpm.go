@@ -282,7 +282,7 @@ func main() {
 	fmt.Println(mpmFullPath)
 
 	// Yes, this is broken. Will come back to it tomorrow.
-	cmd := exec.Command(mpmFullPath, "install --release=", release, " --destination=", installPath, " --products ")
+	cmd := exec.Command(mpmFullPath, "install", "--release="+release, "--destination="+installPath, "--products")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
