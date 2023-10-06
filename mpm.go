@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	var operatingSystem string
 	var defaultTMP string
 	var mpmDownloadPath string
 	var mpmURL string
@@ -24,35 +23,34 @@ func main() {
 	var mpmExtractNeeded bool
 	var release string
 	var defaultPath string
+	var licenseFileUsed bool
+	var licensePath string
+	var mpmFullPath string
 
 	// Figure out your OS.
 	switch userOS := runtime.GOOS; userOS {
 	case "darwin":
-		operatingSystem = "maci64"
 		defaultTMP = "/tmp"
 		mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
 		fmt.Println("macOS")
 	case "windows":
-		operatingSystem = "win64"
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
 		fmt.Println("Windows")
 	case "linux":
-		operatingSystem = "glnxa64"
 		defaultTMP = "/tmp"
-		mpmURL = "https://www.mathworks.com/mpm/glxna64/mpm"
+		mpmURL = "https://www.mathworks.com/mpm/glnxa64/mpm"
 		fmt.Println("Linux")
 	default:
-		operatingSystem = "unknown"
+		defaultTMP = "unknown"
 	}
 
-	if operatingSystem == "unknown" {
+	if defaultTMP == "unknown" {
 		fmt.Println("Your operating system is unrecognized. Exiting.")
-		return
+		os.Exit(0)
 	}
 
 	// Keeping these for now for sanity's sake.
-	fmt.Println("Operating System:", operatingSystem)
 	fmt.Println("MPM URL:", mpmURL)
 	mpmDownloadNeeded = true
 	mpmExtractNeeded = true
@@ -102,7 +100,7 @@ func main() {
 		for {
 			if err == nil {
 				fmt.Print("MPM already exists in this directory. Would you like to overwrite it? ")
-				fmt.Print(red("This will also overwrite the directory 'mpm-contents' if it already exists. (y/n)\n> "))
+				fmt.Print(red("This will also overwrite the directory \"mpm-contents\" if it already exists. (y/n)\n> "))
 				var overwriteMPM string
 				fmt.Scanln(&overwriteMPM)
 				if overwriteMPM == "n" || overwriteMPM == "N" {
@@ -156,7 +154,7 @@ func main() {
 					// Delete the existing "mpm-contents" directory if it's there.
 					err := os.RemoveAll(unzipPath)
 					if err != nil {
-						fmt.Println(red("Failed to delete the existing 'mpm-contents' directory:", err))
+						fmt.Println(red("Failed to delete the existing \"mpm-contents\" directory:", err))
 						continue
 					}
 				}
@@ -221,8 +219,50 @@ func main() {
 
 	var products []string
 
+	// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflect Linux. Yayyyyy.
 	if productsInput == "" {
-		products = []string{"MATLAB", "MATLAB_Parallel_Server"}
+
+		// This list will start from the bottom and add products as it goes up the list, stopping when it matches your release.
+		// This list reflects products that have been added or renamed over time, except for R2017b, which is just the base products for MPM.
+		newProductsToAdd := map[string]string{
+			"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
+			"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
+			"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
+			"R2022a": "Wireless_Testbench Simulink_Real-Time Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
+			"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
+			"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
+			"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
+			"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
+			"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
+			"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
+			"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
+			"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Network_Toolbox Vehicle_Dynamics_Blockset",
+			"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
+		}
+
+		// The actual for loop that goes through the list above.
+		for releaseLoop, product := range newProductsToAdd {
+			if release >= releaseLoop {
+				products = append(products, strings.Fields(product)...)
+			}
+		}
+
+		// This list will start from the top and add products as it goes down the list, stopping when it matches your release.
+		// This list reflects products that have been removed or renamed over time.
+		oldProductsToAdd := map[string]string{
+			"R2021b": "Simulink_Requirements",
+			"R2020b": "Fixed-Point_Designer Trading_Toolbox",
+			"R2019b": "LTE_HDL_Toolbox",
+			"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
+			"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
+		}
+
+		// The actual for loop that goes through the list above. Note that it uses the same logic, just <= instead of >=.
+		for releaseLoop, product := range oldProductsToAdd {
+			if release <= releaseLoop {
+				products = append(products, strings.Fields(product)...)
+			}
+		}
 	} else {
 		products = strings.Fields(productsInput)
 	}
@@ -230,13 +270,13 @@ func main() {
 	fmt.Println("Products to install:", products)
 
 	// Set the default installation path based on your OS.
-	if operatingSystem == "maci64" {
+	if runtime.GOOS == "darwin" {
 		defaultPath = "/Applications/MATLAB_" + release
 	}
-	if operatingSystem == "win64" {
+	if runtime.GOOS == "windows" {
 		defaultPath = "C:\\Program Files\\MATLAB\\" + release
 	}
-	if operatingSystem == "glnxa64" {
+	if runtime.GOOS == "linux" {
 		defaultPath = "/usr/local/MATLAB/" + release
 	}
 
@@ -253,21 +293,35 @@ func main() {
 	// Add some code to check the following:
 	// - If you have permissions to read/write there
 
+	// Optional license file selection
 	fmt.Println("Installation path:", installPath)
+	for {
+		fmt.Print("If you have a license file you'd like to include in your installation, " +
+			"please provide the full path to the existing license file.\n> ")
 
-	// Optional license file selection.
-	fmt.Print("If you have a license file you'd like to include in your installation, " +
-		"please provide the full path to the existing license file.\n> ")
+		licensePath, _ := reader.ReadString('\n')
+		licensePath = strings.TrimSpace(licensePath)
 
-	licensePath, _ := reader.ReadString('\n')
-	licensePath = strings.TrimSpace(licensePath)
+		if licensePath == "" {
+			licenseFileUsed = false
+			break
+		} else {
 
-	// Add some code...
-	// - To check if the file actually exists
-	// - That sets licenseUse = true
-	// - Does not accept ""
+			// Check if the license file exists and has the correct extension.
+			_, err := os.Stat(licensePath)
+			if err != nil {
+				fmt.Println(red("Error:", err))
+				continue
+			} else if !strings.HasSuffix(licensePath, ".dat") && !strings.HasSuffix(licensePath, ".lic") {
+				fmt.Println(red("Invalid file extension. Please provide a file with .dat or .lic extension."))
+				continue
+			} else {
+				licenseFileUsed = true
+				break
+			}
+		}
+	}
 
-	var mpmFullPath string
 	fmt.Println(licensePath)
 
 	if runtime.GOOS == "darwin" {
@@ -281,15 +335,55 @@ func main() {
 	}
 	fmt.Println(mpmFullPath)
 
-	// Yes, this is broken. Will come back to it tomorrow.
-	cmd := exec.Command(mpmFullPath, "install", "--release="+release, "--destination="+installPath, "--products")
+	// Construct the command and arguments to launch MPM.
+	cmdArgs := []string{
+		mpmFullPath,
+		"install",
+		"--release=" + release,
+		"--destination=" + installPath,
+		"--products",
+	}
+	cmdArgs = append(cmdArgs, products...)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("Error executing mpm:", err)
+		fmt.Println(red("Error executing MPM. See the error above for more information.", err))
 	}
 
+	// Create the licenses directory and the file specified, if you specified one.
+	if licenseFileUsed {
+
+		// Create the directory.
+		licensesInstallationDirectory := filepath.Join(installPath, "licenses")
+		err := os.Mkdir(licensesInstallationDirectory, 0755)
+		if err != nil {
+			fmt.Println(red("Error creating \"licenses\" directory:", err))
+		}
+
+		// Copy the license file to the "licenses" directory.
+		licenseFile := filepath.Base(licensePath)
+		destPath := filepath.Join(licensesInstallationDirectory, licenseFile)
+
+		src, err := os.Open(licensePath)
+		if err != nil {
+			fmt.Println(red("Error opening license file:", err))
+		}
+		defer src.Close()
+
+		dest, err := os.Create(destPath)
+		if err != nil {
+			fmt.Println(red("Error creating destination file:", err))
+		}
+		defer dest.Close()
+
+		_, err = io.Copy(dest, src)
+		if err != nil {
+			fmt.Println(red("Error copying license file:", err))
+		}
+	}
 	// Next steps:
 	// - May need to chmod mpm on Linux. Should test this soon.
 	// - Ask which products they'd like to install.
