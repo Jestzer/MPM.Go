@@ -26,6 +26,10 @@ func main() {
 	var licenseFileUsed bool
 	var licensePath string
 	var mpmFullPath string
+	mpmDownloadNeeded = true
+	mpmExtractNeeded = true
+	red := color.New(color.FgRed).SprintFunc()
+	reader := bufio.NewReader(os.Stdin)
 
 	// Figure out your OS.
 	switch userOS := runtime.GOOS; userOS {
@@ -52,28 +56,29 @@ func main() {
 
 	// Keeping these for now for sanity's sake.
 	fmt.Println("MPM URL:", mpmURL)
-	mpmDownloadNeeded = true
-	mpmExtractNeeded = true
-	red := color.New(color.FgRed).SprintFunc()
-	reader := bufio.NewReader(os.Stdin)
-	scanner := bufio.NewScanner(os.Stdin)
 
 	// Figure out where you want actual MPM to go.
+
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-			scanner.Scan()
-			mpmDownloadPath = strings.TrimSpace(scanner.Text())
+		mpmDownloadPath, _ := reader.ReadString('\n')
+		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
+		// Point 1
+		fmt.Print("1")
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
 		} else {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
 				fmt.Printf("The directory \"%s\" does not exist. Do you want to create it? (y/n)\n> ", mpmDownloadPath)
-				scanner.Scan()
-				createDir := strings.TrimSpace(scanner.Text())
-				
+				createDir, _ := reader.ReadString('\n')
+				createDir = strings.TrimSpace(createDir)
+
+				// Point 2
+				fmt.Print("2")
+
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
 				if createDir == "exit" || createDir == "Exit" || createDir == "quit" || createDir == "Quit" {
@@ -95,7 +100,12 @@ func main() {
 				fmt.Println(red("Error checking the directory:", err, "Please select a different directory."))
 				continue
 			}
+
+			// Point 3
+			fmt.Print("3")
 		}
+		// Point 4
+		fmt.Print("4")
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
@@ -132,6 +142,8 @@ func main() {
 					continue
 				}
 			}
+
+			break
 		}
 
 		// Download MPM.
