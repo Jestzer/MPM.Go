@@ -1,2 +1,6 @@
 # mpm-go
-Currently WIP. Techincally works, but Go seems to have an issue where it randomly hangs after the first user input section. I don't think this is an issue with my code and will move on.
+Currently WIP. Techincally works, but the "install all products" list is only completed for Linux at the moment.
+
+There is a known issue with MPM, in general, on Windows with R2023b.
+
+I had some issues with macOS's MPM recently, but I'm not convinced at this moment that I didn't just screw something up.
