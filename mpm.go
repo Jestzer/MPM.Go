@@ -8,67 +8,109 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 
 	"github.com/fatih/color"
 )
 
 func main() {
+
+	// Setup variables that will be used across this program.
+	var debug bool
 	var defaultTMP string
 	var mpmDownloadPath string
 	var mpmURL string
 	var mpmDownloadNeeded bool
 	var mpmExtractNeeded bool
 	var release string
-	var defaultPath string
+	var defaultInstallationPath string
 	var licenseFileUsed bool
 	var licensePath string
 	var mpmFullPath string
 	mpmDownloadNeeded = true
 	mpmExtractNeeded = true
 	red := color.New(color.FgRed).SprintFunc()
+	redBackground := color.New(color.BgRed).SprintFunc()
+	blue := color.New(color.BgBlue).SprintFunc()
 	reader := bufio.NewReader(os.Stdin)
+
+	// Setup for better Ctrl+C messaging. This is a channel to receive OS signals.
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+
+	// Start a goroutine to listen for signals.
+	go func() {
+
+		// Wait for the signal.
+		<-signalChan
+
+		// Handle the signal (in this case, simply exit the program.)
+		fmt.Println(redBackground("Exiting from user input..."))
+		os.Exit(0)
+	}()
+
+	// Detect if you enabled debug mode.
+	args := os.Args[1:]
+	debug = false
+
+	// The for loop that looks over any inputted arguments.
+	for _, arg := range args {
+		if arg == "-debug" {
+			debug = true
+			fmt.Println(blue("Debug mode enabled."))
+			break
+		}
+	}
 
 	// Figure out your OS.
 	switch userOS := runtime.GOOS; userOS {
 	case "darwin":
 		defaultTMP = "/tmp"
 		mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
-		fmt.Println("macOS")
+		if debug {
+			fmt.Println(blue("macOS"))
+		}
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
-		fmt.Println("Windows")
+		if debug {
+			fmt.Println(blue("Windows"))
+		}
 	case "linux":
 		defaultTMP = "/tmp"
 		mpmURL = "https://www.mathworks.com/mpm/glnxa64/mpm"
-		fmt.Println("Linux")
+		if debug {
+			fmt.Println(blue("Linux"))
+		}
 	default:
 		defaultTMP = "unknown"
-	}
-
-	if defaultTMP == "unknown" {
-		fmt.Println("Your operating system is unrecognized. Exiting.")
+		fmt.Println(red("Your operating system is unrecognized. Exiting."))
 		os.Exit(0)
 	}
 
-	// Keeping these for now for sanity's sake.
-	fmt.Println("MPM URL:", mpmURL)
+	if debug {
+		fmt.Println(blue("MPM URL:", mpmURL))
+	}
 
 	// Figure out where you want actual MPM to go.
-
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		mpmDownloadPath, _ := reader.ReadString('\n')
+		mpmDownloadPath, _ = reader.ReadString('\n')
 		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
 		// Debug point 1
-		//fmt.Print("1")
+		if debug {fmt.Println(blue("1"))}
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
+			if debug {
+				fmt.Println(blue("defaultTMP: " + defaultTMP))
+				fmt.Println(blue("mpmDownloadPath Line 112: " + mpmDownloadPath))
+			}
 		} else {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
@@ -77,7 +119,7 @@ func main() {
 				createDir = strings.TrimSpace(createDir)
 
 				// Debug point 2
-				//fmt.Print("2")
+				if debug {fmt.Println(blue("2"))}
 
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
@@ -102,10 +144,10 @@ func main() {
 			}
 
 			// Debug point 3
-			//fmt.Print("3")
+			if debug {fmt.Println(blue("3"))}
 		}
 		// Debug point 4
-		//fmt.Print("4")
+		if debug {fmt.Println(blue("4"))}
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
@@ -113,7 +155,7 @@ func main() {
 		for {
 			if err == nil {
 				fmt.Print("MPM already exists in this directory. Would you like to overwrite it? ")
-				fmt.Print(red("This will also overwrite the directory \"mpm-contents\" if it already exists. (y/n)\n> "))
+				fmt.Print(red("This will also overwrite the directory \"mpm-contents\" and its contents if it already exists. (y/n)\n> "))
 				overwriteMPM, _ := reader.ReadString('\n')
 				overwriteMPM = cleanInput(overwriteMPM)
 				if overwriteMPM == "n" || overwriteMPM == "N" {
@@ -143,7 +185,7 @@ func main() {
 				}
 			}
 			//Debug point 5
-			//fmt.Print("5")
+			if debug {fmt.Println(blue("5"))}
 			break
 		}
 
@@ -188,12 +230,34 @@ func main() {
 				}
 				fmt.Println("MPM extracted successfully.")
 			}
+			if debug {fmt.Println(blue("mpmDownloadPath Line 233: " + mpmDownloadPath))}
+		}
+		if debug {fmt.Println(blue("mpmDownloadPath Line 235: " + mpmDownloadPath))}
+
+		// Make sure you can actually execute MPM on Linux.
+		if runtime.GOOS == "linux" {
+			command := "chmod +x " + mpmDownloadPath + "/mpm"
+			if debug {fmt.Println(blue("Command to execute: " + command))}
+	
+			// Execute the command
+			cmd := exec.Command("bash", "-c", command)
+			err := cmd.Run()
+	
+			if err != nil {
+				fmt.Println("Failed to execute the command:", err)
+				fmt.Print(". Either select a different directory, run this program with needed privileges, " +
+				"or make modifications to MPM outside of this program.")
+				continue
+			}
+	
+			if debug {fmt.Println(blue("chmod command executed successfully."))}
 		}
 		break
 	}
 
-	// Ask the user which release they'd like to install.
+	if debug {fmt.Println(blue("mpmDownloadPath Line 239: " + mpmDownloadPath))}
 
+	// Ask the user which release they'd like to install.
 	validReleases := []string{
 		"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
 		"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b",
@@ -220,7 +284,9 @@ func main() {
 		}
 
 		if found {
-			fmt.Println("Selected release:", release)
+			if debug {
+				fmt.Println(blue("Selected release:", release))
+			}
 			break
 		}
 
@@ -283,34 +349,39 @@ func main() {
 		products = strings.Fields(productsInput)
 	}
 
-	fmt.Println("Products to install:", products)
+	if debug {
+		fmt.Println(blue("Products to install:", products))
+	}
 
 	// Set the default installation path based on your OS.
 	if runtime.GOOS == "darwin" {
-		defaultPath = "/Applications/MATLAB_" + release
+		defaultInstallationPath = "/Applications/MATLAB_" + release
 	}
 	if runtime.GOOS == "windows" {
-		defaultPath = "C:\\Program Files\\MATLAB\\" + release
+		defaultInstallationPath = "C:\\Program Files\\MATLAB\\" + release
 	}
 	if runtime.GOOS == "linux" {
-		defaultPath = "/usr/local/MATLAB/" + release
+		defaultInstallationPath = "/usr/local/MATLAB/" + release
 	}
 
 	fmt.Print("Enter the full path where you would like to install these products. "+
-		"Press Enter to install to default path: \"", defaultPath, "\"\n> ")
+		"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
 
 	installPath, _ := reader.ReadString('\n')
 	installPath = strings.TrimSpace(installPath)
 
 	if installPath == "" {
-		installPath = defaultPath
+		installPath = defaultInstallationPath
 	}
 
 	// Add some code to check the following:
 	// - If you have permissions to read/write there
 
-	// Optional license file selection
-	fmt.Println("Installation path:", installPath)
+	if debug {
+		fmt.Println(blue("Installation path:", installPath))
+	}
+
+	// Optional license file selection.
 	for {
 		fmt.Print("If you have a license file you'd like to include in your installation, " +
 			"please provide the full path to the existing license file.\n> ")
@@ -338,7 +409,9 @@ func main() {
 		}
 	}
 
-	fmt.Println(licensePath)
+	if debug {
+		fmt.Println(blue(licensePath))
+	}
 
 	if runtime.GOOS == "darwin" {
 		mpmFullPath = mpmDownloadPath + "//mpm-contents//bin//maci64//mpm"
@@ -349,7 +422,10 @@ func main() {
 	if runtime.GOOS == "linux" {
 		mpmFullPath = mpmDownloadPath + "/mpm"
 	}
-	fmt.Println(mpmFullPath)
+
+	if debug {
+		fmt.Println(blue(mpmFullPath))
+	}
 
 	// Construct the command and arguments to launch MPM.
 	cmdArgs := []string{
