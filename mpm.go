@@ -55,12 +55,14 @@ func main() {
 	mpmDownloadNeeded = true
 	mpmExtractNeeded = true
 	red := color.New(color.FgRed).SprintFunc()
+	reader := bufio.NewReader(os.Stdin)
 
 	// Figure out where you want actual MPM to go.
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		fmt.Scanln(&mpmDownloadPath)
+		mpmDownloadPath, _ = reader.ReadString('\n')
+		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
@@ -68,8 +70,8 @@ func main() {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
 				fmt.Printf("The directory \"%s\" does not exist. Do you want to create it? (y/n)\n> ", mpmDownloadPath)
-				var createDir string
-				fmt.Scanln(&createDir)
+				createDir, _ := reader.ReadString('\n')
+				createDir = cleanInput(createDir)
 
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
@@ -95,14 +97,14 @@ func main() {
 		}
 
 		// Check if MPM already exists in the selected directory.
-		fileName := mpmDownloadPath + "/mpm"
+		fileName := filepath.Join(mpmDownloadPath, "mpm")
 		_, err := os.Stat(fileName)
 		for {
 			if err == nil {
 				fmt.Print("MPM already exists in this directory. Would you like to overwrite it? ")
 				fmt.Print(red("This will also overwrite the directory \"mpm-contents\" if it already exists. (y/n)\n> "))
-				var overwriteMPM string
-				fmt.Scanln(&overwriteMPM)
+				overwriteMPM, _ := reader.ReadString('\n')
+				overwriteMPM = cleanInput(overwriteMPM)
 				if overwriteMPM == "n" || overwriteMPM == "N" {
 					fmt.Println("Skipping download.")
 					mpmDownloadNeeded = false
@@ -177,7 +179,7 @@ func main() {
 	}
 
 	// Ask the user which release they'd like to install.
-	reader := bufio.NewReader(os.Stdin)
+
 	validReleases := []string{
 		"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
 		"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b",
@@ -393,6 +395,11 @@ func main() {
 	// - Ask if you want to use a license file.
 	// - Kick off installation.
 	// - Place the license file if you asked to use one.
+}
+
+// Clean input function
+func cleanInput(input string) string {
+	return strings.TrimSpace(input)
 }
 
 // Function to download a file from the given URL and save it to the specified path.
