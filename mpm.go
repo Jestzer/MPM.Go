@@ -56,13 +56,14 @@ func main() {
 	mpmExtractNeeded = true
 	red := color.New(color.FgRed).SprintFunc()
 	reader := bufio.NewReader(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	// Figure out where you want actual MPM to go.
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		mpmDownloadPath, _ = reader.ReadString('\n')
-		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
+			scanner.Scan()
+			mpmDownloadPath = strings.TrimSpace(scanner.Text())
 
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
@@ -70,9 +71,9 @@ func main() {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
 				fmt.Printf("The directory \"%s\" does not exist. Do you want to create it? (y/n)\n> ", mpmDownloadPath)
-				createDir, _ := reader.ReadString('\n')
-				createDir = cleanInput(createDir)
-
+				scanner.Scan()
+				createDir := strings.TrimSpace(scanner.Text())
+				
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
 				if createDir == "exit" || createDir == "Exit" || createDir == "quit" || createDir == "Quit" {
