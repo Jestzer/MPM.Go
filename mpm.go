@@ -65,8 +65,8 @@ func main() {
 		mpmDownloadPath, _ := reader.ReadString('\n')
 		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
-		// Point 1
-		fmt.Print("1")
+		// Debug point 1
+		//fmt.Print("1")
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
 		} else {
@@ -76,8 +76,8 @@ func main() {
 				createDir, _ := reader.ReadString('\n')
 				createDir = strings.TrimSpace(createDir)
 
-				// Point 2
-				fmt.Print("2")
+				// Debug point 2
+				//fmt.Print("2")
 
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
@@ -101,11 +101,11 @@ func main() {
 				continue
 			}
 
-			// Point 3
-			fmt.Print("3")
+			// Debug point 3
+			//fmt.Print("3")
 		}
-		// Point 4
-		fmt.Print("4")
+		// Debug point 4
+		//fmt.Print("4")
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
@@ -142,7 +142,8 @@ func main() {
 					continue
 				}
 			}
-
+			//Debug point 5
+			//fmt.Print("5")
 			break
 		}
 
