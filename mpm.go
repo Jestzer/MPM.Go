@@ -295,7 +295,7 @@ func main() {
 			release = defaultRelease
 		}
 
-		if runtime.GOOS == "windows" {
+		if runtime.GOOS == "windows" && release == "R2023b" {
 			fmt.Println(red("MPM currently does not support R2023b on Windows. " +
 				"Please select a different release."))
 			continue
