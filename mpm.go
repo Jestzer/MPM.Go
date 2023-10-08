@@ -49,7 +49,7 @@ func main() {
 		<-signalChan
 
 		// Handle the signal (in this case, simply exit the program.)
-		fmt.Println(redBackground("Exiting from user input..."))
+		fmt.Println(redBackground("\nExiting from user input..."))
 		os.Exit(0)
 	}()
 
@@ -74,6 +74,8 @@ func main() {
 		if debug {
 			fmt.Println(blue("macOS"))
 		}
+		fmt.Println(redBackground("MPM currently requires gatekeeper to be disabled on macOS. " +
+			"Please disable it before running this program, if you haven't already."))
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
@@ -104,12 +106,14 @@ func main() {
 		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
 		// Debug point 1
-		if debug {fmt.Println(blue("1"))}
+		if debug {
+			fmt.Println(blue("1"))
+		}
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
 			if debug {
 				fmt.Println(blue("defaultTMP: " + defaultTMP))
-				fmt.Println(blue("mpmDownloadPath Line 112: " + mpmDownloadPath))
+				fmt.Println(blue("mpmDownloadPath Line 116: " + mpmDownloadPath))
 			}
 		} else {
 			_, err := os.Stat(mpmDownloadPath)
@@ -119,7 +123,9 @@ func main() {
 				createDir = strings.TrimSpace(createDir)
 
 				// Debug point 2
-				if debug {fmt.Println(blue("2"))}
+				if debug {
+					fmt.Println(blue("2"))
+				}
 
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
@@ -144,10 +150,14 @@ func main() {
 			}
 
 			// Debug point 3
-			if debug {fmt.Println(blue("3"))}
+			if debug {
+				fmt.Println(blue("3"))
+			}
 		}
 		// Debug point 4
-		if debug {fmt.Println(blue("4"))}
+		if debug {
+			fmt.Println(blue("4"))
+		}
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
@@ -185,7 +195,9 @@ func main() {
 				}
 			}
 			//Debug point 5
-			if debug {fmt.Println(blue("5"))}
+			if debug {
+				fmt.Println(blue("5"))
+			}
 			break
 		}
 
@@ -230,32 +242,42 @@ func main() {
 				}
 				fmt.Println("MPM extracted successfully.")
 			}
-			if debug {fmt.Println(blue("mpmDownloadPath Line 233: " + mpmDownloadPath))}
+			if debug {
+				fmt.Println(blue("mpmDownloadPath Line 246: " + mpmDownloadPath))
+			}
 		}
-		if debug {fmt.Println(blue("mpmDownloadPath Line 235: " + mpmDownloadPath))}
+		if debug {
+			fmt.Println(blue("mpmDownloadPath Line 250: " + mpmDownloadPath))
+		}
 
 		// Make sure you can actually execute MPM on Linux.
 		if runtime.GOOS == "linux" {
 			command := "chmod +x " + mpmDownloadPath + "/mpm"
-			if debug {fmt.Println(blue("Command to execute: " + command))}
-	
+			if debug {
+				fmt.Println(blue("Command to execute: " + command))
+			}
+
 			// Execute the command
 			cmd := exec.Command("bash", "-c", command)
 			err := cmd.Run()
-	
+
 			if err != nil {
 				fmt.Println("Failed to execute the command:", err)
 				fmt.Print(". Either select a different directory, run this program with needed privileges, " +
-				"or make modifications to MPM outside of this program.")
+					"or make modifications to MPM outside of this program.")
 				continue
 			}
-	
-			if debug {fmt.Println(blue("chmod command executed successfully."))}
+
+			if debug {
+				fmt.Println(blue("chmod command executed successfully."))
+			}
 		}
 		break
 	}
 
-	if debug {fmt.Println(blue("mpmDownloadPath Line 239: " + mpmDownloadPath))}
+	if debug {
+		fmt.Println(blue("mpmDownloadPath Line 239: " + mpmDownloadPath))
+	}
 
 	// Ask the user which release they'd like to install.
 	validReleases := []string{
@@ -271,6 +293,12 @@ func main() {
 		release = strings.TrimSpace(release)
 		if release == "" {
 			release = defaultRelease
+		}
+
+		if runtime.GOOS == "windows" {
+			fmt.Println(red("MPM currently does not support R2023b on Windows. " +
+				"Please select a different release."))
+			continue
 		}
 
 		release = strings.ToLower(release)
