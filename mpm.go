@@ -38,6 +38,7 @@ func main() {
 	blue := color.New(color.BgBlue).SprintFunc()
 	reader := bufio.NewReader(os.Stdin)
 
+	// Add some code that'll allow arrow keys to be used when prompted for user input.
 	// Setup for better Ctrl+C messaging. This is a channel to receive OS signals.
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
@@ -329,11 +330,12 @@ func main() {
 
 	var products []string
 
-	// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflect Linux. Yayyyyy.
+	// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflects Linux. Yayyyyy.
 	if productsInput == "" {
 
 		// This list will start from the bottom and add products as it goes up the list, stopping when it matches your release.
 		// This list reflects products that have been added or renamed over time, except for R2017b, which is just the base products for MPM.
+		// This list and the next one are based on Linux. Modifications based on your operating system are made afterwards.
 		newProductsToAdd := map[string]string{
 			"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
 			"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
@@ -348,6 +350,17 @@ func main() {
 			"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
 			"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Network_Toolbox Vehicle_Dynamics_Blockset",
 			"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
+		}
+
+		// There are some products that are Windows-only or were originally Windows-only.
+		if runtime.GOOS == "windows" {
+
+			// Products to add, only applies to the base-level R2017b at the moment.
+			windowsOnlyProductsR2017b := newProductsToAdd["R2017b"]
+			windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox OPC_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+			newProductsToAdd["R2017b"] = windowsOnlyProductsR2017b
+
+			// Add some code that'll remove discontinued and repeated products as some were eventually added to Linux.
 		}
 
 		// The actual for loop that goes through the list above.
