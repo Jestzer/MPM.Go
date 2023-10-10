@@ -357,10 +357,20 @@ func main() {
 
 			// Products to add, only applies to the base-level R2017b at the moment.
 			windowsOnlyProductsR2017b := newProductsToAdd["R2017b"]
-			windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox OPC_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+
+			// To remove discontinued Windows-only products, starting at R2022a.
+			if release >= "R2022a" {
+				windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+			} else {
+				windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox OPC_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+			}
 			newProductsToAdd["R2017b"] = windowsOnlyProductsR2017b
 
-			// Add some code that'll remove discontinued and repeated products as some were eventually added to Linux.
+			// Prevent products from repeating twice, as they were eventually added to Linux.
+			newProductsToAdd["R2023b"] = "Simulink_Desktop_Real-Time"
+			newProductsToAdd["R2022a"] = "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox"
+			newProductsToAdd["R2019b"] = "ROS_Toolbox Navigation_Toolbox"
+			newProductsToAdd["R2018a"] = "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset"
 		}
 
 		// The actual for loop that goes through the list above.
