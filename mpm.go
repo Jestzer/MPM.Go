@@ -372,6 +372,25 @@ func main() {
 			newProductsToAdd["R2019b"] = "ROS_Toolbox Navigation_Toolbox"
 			newProductsToAdd["R2018a"] = "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset"
 		}
+		// macOS differences.
+		if runtime.GOOS == "darwin" {
+
+			// Remove discontinued products from the appropriate release.
+			if release >= "R2022a" {
+				newProductsToAdd["R2019a"] = "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset Mixed-Signal_Blockset AUTOSAR_Blockset Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox"
+			}
+
+			// Remove products that were never available for macOS.
+			newProductsToAdd["R2022a"] = "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox"
+
+			// R2022a products to remove: Simulink_Real-Time
+			// R2021b products to remove: Signal_Integrity_Toolbox RF_PCB_Toolbox (yes, all R2021b entries ,lol.)
+			// R2020b products to remove: Deep_Learning_HDL_Toolbox
+			// R2019a products to remove: SoC_Blockset
+			// R2018a products to remove: Vehicle_Network_Toolbox
+			// R2017b products to remove: GPU coder, HDL Verifier, Vision_HDL_Toolbox
+
+		}
 
 		// The actual for loop that goes through the list above.
 		for releaseLoop, product := range newProductsToAdd {
