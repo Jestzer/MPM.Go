@@ -71,12 +71,18 @@ func main() {
 	switch userOS := runtime.GOOS; userOS {
 	case "darwin":
 		defaultTMP = "/tmp"
-		mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
-		if debug {
-			fmt.Println(blue("macOS"))
+		switch runtime.GOARCH {
+		case "amd64":
+			mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
+			if debug {
+				fmt.Println("macOS (Intel)")
+			}
+		case "arm64":
+			mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
+			if debug {
+				fmt.Println("macOS (Apple Silicon)")
+			}
 		}
-		fmt.Println(redBackground("MPM currently requires gatekeeper to be disabled on macOS. " +
-			"Please disable it before running this program, if you haven't already."))
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
@@ -283,9 +289,9 @@ func main() {
 	// Ask the user which release they'd like to install.
 	validReleases := []string{
 		"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
-		"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b",
+		"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a",
 	}
-	defaultRelease := "R2023b"
+	defaultRelease := "R2024a"
 
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
@@ -313,7 +319,7 @@ func main() {
 			break
 		}
 
-		fmt.Println(red("Invalid release. Enter a release between R2017b-R2023b."))
+		fmt.Println(red("Invalid release. Enter a release between R2017b-R2024a."))
 	}
 
 	//Product selection.
@@ -331,6 +337,7 @@ func main() {
 		// This list reflects products that have been added or renamed over time, except for R2017b, which is just the base products for MPM.
 		// This list and the next one are based on Linux. Modifications based on your operating system are made afterwards.
 		newProductsToAdd := map[string]string{
+			"R2024a": "", // No new products were added in R2024a.
 			"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
 			"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
 			"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
