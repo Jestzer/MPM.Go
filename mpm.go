@@ -416,7 +416,11 @@ func main() {
 				products = append(products, strings.Fields(product)...)
 			}
 		}
-	} else {
+	} else if productsInput == "parallel_products" {
+
+		products = "MATLAB, Parallel_Computing_Toolbox, MATLAB_Parallel_Server"
+	
+} else {
 		products = strings.Fields(productsInput)
 	}
 
