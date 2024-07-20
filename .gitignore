@@ -3,3 +3,4 @@ macOS
 Windows
 *.exe
 mpm
+.DS_Store
