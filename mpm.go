@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,12 +19,10 @@ import (
 func main() {
 
 	var (
-		debug                   bool
 		defaultTMP              string
 		mpmDownloadPath         string
 		mpmURL                  string
 		mpmDownloadNeeded       bool
-		mpmExtractNeeded        bool
 		release                 string
 		defaultInstallationPath string
 		licenseFileUsed         bool
@@ -33,10 +30,9 @@ func main() {
 		mpmFullPath             string
 	)
 	mpmDownloadNeeded = true
-	mpmExtractNeeded = true
+	userOS := runtime.GOOS
 	redText := color.New(color.FgRed).SprintFunc()
 	redBackground := color.New(color.BgRed).SprintFunc()
-	blueBackground := color.New(color.BgBlue).SprintFunc()
 
 	// Reader to make using the command line not suck.
 	rl, err := readline.New("> ")
@@ -60,62 +56,33 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Detect if you enabled debug mode.
-	args := os.Args[1:]
-	debug = false
-
-	// The for loop that looks over any inputted arguments.
-	for _, arg := range args {
-		if arg == "-debug" {
-			debug = true
-			fmt.Println(blue("Debug mode enabled."))
-			break
-		}
-	}
-
 	// Figure out your OS.
-	switch userOS := runtime.GOOS; userOS {
+	switch userOS {
 	case "darwin":
 		defaultTMP = "/tmp"
 		switch runtime.GOARCH {
 		case "amd64":
 			mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
-			if debug {
-				fmt.Println("macOS (Intel)")
-			}
 		case "arm64":
 			mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
-			if debug {
-				fmt.Println("macOS (Apple Silicon)")
-			}
 		}
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
-		if debug {
-			fmt.Println(blue("Windows"))
-		}
 	case "linux":
 		defaultTMP = "/tmp"
 		mpmURL = "https://www.mathworks.com/mpm/glnxa64/mpm"
-		if debug {
-			fmt.Println(blue("Linux"))
-		}
 	default:
 		defaultTMP = "unknown"
-		fmt.Println(red("Your operating system is unrecognized. Exiting."))
+		fmt.Println(redText("Your operating system is unrecognized. Exiting."))
 		os.Exit(0)
-	}
-
-	if debug {
-		fmt.Println(blue("MPM URL:", mpmURL))
 	}
 
 	// Figure out where you want actual MPM to go.
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		mpmDownloadPath, _ = rl.Readline()
+		mpmDownloadPath, err = rl.Readline()
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -127,27 +94,23 @@ func main() {
 		}
 		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
-		// Debug point 1
-		if debug {
-			fmt.Println(blue("1"))
-		}
 		if mpmDownloadPath == "" {
 			mpmDownloadPath = defaultTMP
-			if debug {
-				fmt.Println(blue("defaultTMP: " + defaultTMP))
-				fmt.Println(blue("mpmDownloadPath Line 116: " + mpmDownloadPath))
-			}
 		} else {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
 				fmt.Printf("The directory \"%s\" does not exist. Do you want to create it? (y/n)\n> ", mpmDownloadPath)
-				createDir, _ := reader.ReadString('\n')
-				createDir = strings.TrimSpace(createDir)
-
-				// Debug point 2
-				if debug {
-					fmt.Println(blue("2"))
+				createDir, err := rl.Readline()
+				if err != nil {
+					if err.Error() == "Interrupt" {
+						fmt.Println(redText("Exiting from user input."))
+					} else {
+						fmt.Print(redText("Error reading line: ", err))
+						continue
+					}
+					return
 				}
+				createDir = strings.TrimSpace(createDir)
 
 				// Don't ask me why I've only put this here so far.
 				// I'll probably put it in other places that don't ask for file names/paths.
@@ -158,7 +121,7 @@ func main() {
 				if createDir == "y" || createDir == "Y" {
 					err := os.MkdirAll(mpmDownloadPath, 0755)
 					if err != nil {
-						fmt.Println(red("Failed to create the directory:", err, "Please select a different directory."))
+						fmt.Println(redText("Failed to create the directory:", err, "Please select a different directory."))
 						continue
 					}
 					fmt.Println("Directory created successfully.")
@@ -167,58 +130,43 @@ func main() {
 					continue
 				}
 			} else if err != nil {
-				fmt.Println(red("Error checking the directory:", err, "Please select a different directory."))
+				fmt.Println(redText("Error checking the directory:", err, "Please select a different directory."))
 				continue
 			}
-
-			// Debug point 3
-			if debug {
-				fmt.Println(blue("3"))
-			}
-		}
-		// Debug point 4
-		if debug {
-			fmt.Println(blue("4"))
 		}
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
+		if userOS == "windows" {
+			fileName = filepath.Join(mpmDownloadPath, "mpm.exe")
+		}
 		_, err := os.Stat(fileName)
 		for {
 			if err == nil {
 				fmt.Print("MPM already exists in this directory. Would you like to overwrite it? ")
-				fmt.Print(red("This will also overwrite the directory \"mpm-contents\" and its contents if it already exists. (y/n)\n> "))
-				overwriteMPM, _ := reader.ReadString('\n')
+				fmt.Print(redText("This will also overwrite the directory \"mpm-contents\" and its contents if it already exists. (y/n)\n> "))
+				overwriteMPM, err := rl.Readline()
+				if err != nil {
+					if err.Error() == "Interrupt" {
+						fmt.Println(redText("Exiting from user input."))
+					} else {
+						fmt.Print(redText("Error reading line: ", err))
+						continue
+					}
+					return
+				}
+
 				overwriteMPM = cleanInput(overwriteMPM)
 				if overwriteMPM == "n" || overwriteMPM == "N" {
 					fmt.Println("Skipping download.")
 					mpmDownloadNeeded = false
-					if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-						unzipPath := filepath.Join(mpmDownloadPath, "mpm-contents")
-
-						// Skip download if you want to use your existing MPM, but it is not extracted.
-						if _, err := os.Stat(unzipPath); os.IsNotExist(err) {
-							break
-						} else {
-							fmt.Println("Skipping extraction.")
-							mpmExtractNeeded = false
-							break
-						}
-					} else {
-						mpmExtractNeeded = false
-						break
-					}
 				}
 				if overwriteMPM == "y" || overwriteMPM == "Y" {
 					break
 				} else {
-					fmt.Println(red("Invalid choice. Please enter either 'y' or 'n'."))
+					fmt.Println(redText("Invalid choice. Please enter either 'y' or 'n'."))
 					continue
 				}
-			}
-			//Debug point 5
-			if debug {
-				fmt.Println(blue("5"))
 			}
 			break
 		}
@@ -228,56 +176,15 @@ func main() {
 			fmt.Println("Beginning download of MPM. Please wait.")
 			err = downloadFile(mpmURL, fileName)
 			if err != nil {
-				fmt.Println(red("Failed to download MPM. ", err))
+				fmt.Println(redText("Failed to download MPM. ", err))
 				continue
 			}
 			fmt.Println("MPM downloaded successfully.")
 		}
 
-		// Unzip the file if using Windows or macOS.
-		if mpmExtractNeeded {
-			if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-				fmt.Println("Beginning extraction of MPM.")
-				unzipPath := filepath.Join(mpmDownloadPath, "mpm-contents")
-
-				// Check if the "mpm-contents" directory already exists.
-				if _, err := os.Stat(unzipPath); err == nil {
-
-					// Delete the existing "mpm-contents" directory if it's there.
-					err := os.RemoveAll(unzipPath)
-					if err != nil {
-						fmt.Println(red("Failed to delete the existing \"mpm-contents\" directory:", err))
-						continue
-					}
-				}
-
-				err := os.MkdirAll(unzipPath, 0755)
-				if err != nil {
-					fmt.Println(red("Failed to create the directory:", err))
-					continue
-				}
-
-				err = unzipFile(fileName, unzipPath)
-				if err != nil {
-					fmt.Println(red("Failed to extract MPM:", err))
-					continue
-				}
-				fmt.Println("MPM extracted successfully.")
-			}
-			if debug {
-				fmt.Println(blue("mpmDownloadPath Line 246: " + mpmDownloadPath))
-			}
-		}
-		if debug {
-			fmt.Println(blue("mpmDownloadPath Line 250: " + mpmDownloadPath))
-		}
-
 		// Make sure you can actually execute MPM on Linux.
 		if runtime.GOOS == "linux" {
 			command := "chmod +x " + mpmDownloadPath + "/mpm"
-			if debug {
-				fmt.Println(blue("Command to execute: " + command))
-			}
 
 			// Execute the command
 			cmd := exec.Command("bash", "-c", command)
@@ -289,16 +196,8 @@ func main() {
 					"or make modifications to MPM outside of this program.")
 				continue
 			}
-
-			if debug {
-				fmt.Println(blue("chmod command executed successfully."))
-			}
 		}
 		break
-	}
-
-	if debug {
-		fmt.Println(blue("mpmDownloadPath Line 239: " + mpmDownloadPath))
 	}
 
 	// Ask the user which release they'd like to install.
@@ -311,7 +210,17 @@ func main() {
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
 		fmt.Print("\n> ")
-		release, _ = reader.ReadString('\n')
+		release, err = rl.Readline()
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Print(redText("Error reading line: ", err))
+				continue
+			}
+			return
+		}
+
 		release = strings.TrimSpace(release)
 		if release == "" {
 			release = defaultRelease
@@ -328,19 +237,27 @@ func main() {
 		}
 
 		if found {
-			if debug {
-				fmt.Println(blue("Selected release:", release))
-			}
 			break
 		}
 
-		fmt.Println(red("Invalid release. Enter a release between R2017b-R2024a."))
+		fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024a."))
 	}
 
-	//Product selection.
+	// Not sure why this isn't in a for loop. Will find out soon enough.
+	// Product selection.
 	fmt.Print("Enter the products you would like to install. Use the same syntax as MPM to specify products. " +
 		"Press Enter to install all products.\n> ")
-	productsInput, _ := reader.ReadString('\n')
+	productsInput, err := rl.Readline()
+	if err != nil {
+		if err.Error() == "Interrupt" {
+			fmt.Println(redText("Exiting from user input."))
+		} else {
+			fmt.Print(redText("Error reading line: ", err))
+			//continue
+			os.Exit(1)
+		}
+		return
+	}
 	productsInput = strings.TrimSpace(productsInput)
 
 	var products []string
@@ -439,10 +356,6 @@ func main() {
 		products = strings.Fields(productsInput)
 	}
 
-	if debug {
-		fmt.Println(blue("Products to install:", products))
-	}
-
 	// Set the default installation path based on your OS.
 	if runtime.GOOS == "darwin" {
 		defaultInstallationPath = "/Applications/MATLAB_" + release
@@ -457,7 +370,17 @@ func main() {
 	fmt.Print("Enter the full path where you would like to install these products. "+
 		"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
 
-	installPath, _ := reader.ReadString('\n')
+	installPath, err := rl.Readline()
+	if err != nil {
+		if err.Error() == "Interrupt" {
+			fmt.Println(redText("Exiting from user input."))
+		} else {
+			fmt.Print(redText("Error reading line: ", err))
+			//continue
+			os.Exit(1)
+		}
+		return
+	}
 	installPath = strings.TrimSpace(installPath)
 
 	if installPath == "" {
@@ -467,16 +390,21 @@ func main() {
 	// Add some code to check the following:
 	// - If you have permissions to read/write there
 
-	if debug {
-		fmt.Println(blue("Installation path:", installPath))
-	}
-
 	// Optional license file selection.
 	for {
 		fmt.Print("If you have a license file you'd like to include in your installation, " +
 			"please provide the full path to the existing license file.\n> ")
 
-		licensePath, _ := reader.ReadString('\n')
+		licensePath, err = rl.Readline()
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Print(redText("Error reading line: ", err))
+				continue
+			}
+			return
+		}
 		licensePath = strings.TrimSpace(licensePath)
 
 		if licensePath == "" {
@@ -487,20 +415,16 @@ func main() {
 			// Check if the license file exists and has the correct extension.
 			_, err := os.Stat(licensePath)
 			if err != nil {
-				fmt.Println(red("Error:", err))
+				fmt.Println(redText("Error:", err))
 				continue
 			} else if !strings.HasSuffix(licensePath, ".dat") && !strings.HasSuffix(licensePath, ".lic") {
-				fmt.Println(red("Invalid file extension. Please provide a file with .dat or .lic extension."))
+				fmt.Println(redText("Invalid file extension. Please provide a file with .dat or .lic extension."))
 				continue
 			} else {
 				licenseFileUsed = true
 				break
 			}
 		}
-	}
-
-	if debug {
-		fmt.Println(blue(licensePath))
 	}
 
 	if runtime.GOOS == "darwin" {
@@ -511,10 +435,6 @@ func main() {
 	}
 	if runtime.GOOS == "linux" {
 		mpmFullPath = mpmDownloadPath + "/mpm"
-	}
-
-	if debug {
-		fmt.Println(blue(mpmFullPath))
 	}
 
 	// Construct the command and arguments to launch MPM.
@@ -532,7 +452,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(red("Error executing MPM. See the error above for more information.", err))
+		fmt.Println(redText("Error executing MPM. See the error above for more information.", err))
 	}
 
 	// Create the licenses directory and the file specified, if you specified one.
@@ -542,7 +462,7 @@ func main() {
 		licensesInstallationDirectory := filepath.Join(installPath, "licenses")
 		err := os.Mkdir(licensesInstallationDirectory, 0755)
 		if err != nil {
-			fmt.Println(red("Error creating \"licenses\" directory:", err))
+			fmt.Println(redText("Error creating \"licenses\" directory:", err))
 		}
 
 		// Copy the license file to the "licenses" directory.
@@ -551,19 +471,19 @@ func main() {
 
 		src, err := os.Open(licensePath)
 		if err != nil {
-			fmt.Println(red("Error opening license file:", err))
+			fmt.Println(redText("Error opening license file:", err))
 		}
 		defer src.Close()
 
 		dest, err := os.Create(destPath)
 		if err != nil {
-			fmt.Println(red("Error creating destination file:", err))
+			fmt.Println(redText("Error creating destination file:", err))
 		}
 		defer dest.Close()
 
 		_, err = io.Copy(dest, src)
 		if err != nil {
-			fmt.Println(red("Error copying license file:", err))
+			fmt.Println(redText("Error copying license file:", err))
 		}
 	}
 	// Next steps:
@@ -599,55 +519,6 @@ func downloadFile(url string, filePath string) error {
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// Function to unzip MPM, since we have to on Windows and macOS.
-func unzipFile(src, dest string) error {
-	reader, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	for _, file := range reader.File {
-		path := filepath.Join(dest, file.Name)
-
-		// Reconstruct the file path on Windows to ensure proper subdirectories are created.
-		// Don't know why other OSes don't need this.
-		if runtime.GOOS == "windows" {
-			path = filepath.Join(dest, file.Name)
-			path = filepath.FromSlash(path)
-		}
-
-		if file.FileInfo().IsDir() {
-			os.MkdirAll(path, file.Mode())
-			continue
-		}
-
-		err := os.MkdirAll(filepath.Dir(path), 0755)
-		if err != nil {
-			return err
-		}
-
-		fileReader, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer fileReader.Close()
-
-		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
-		if err != nil {
-			return err
-		}
-		defer targetFile.Close()
-
-		_, err = io.Copy(targetFile, fileReader)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
