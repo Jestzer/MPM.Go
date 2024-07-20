@@ -1,4 +1,4 @@
-module github.com/Jestzer/mpm-go/blob/main/mpm
+module github.com/Jestzer/MPM.Go/blob/main/mpm
 
 go 1.22.5
 
