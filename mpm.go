@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -20,9 +21,11 @@ func main() {
 
 	var (
 		defaultTMP              string
+		installPath             string
 		mpmDownloadPath         string
 		mpmURL                  string
 		mpmDownloadNeeded       bool
+		products                []string
 		release                 string
 		defaultInstallationPath string
 		licenseFileUsed         bool
@@ -78,6 +81,12 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create a valid products map for quick lookup
+	validProducts := make(map[string]bool)
+	for _, product := range getCompleteProductList() {
+		validProducts[product] = true
+	}
+
 	// Figure out where you want actual MPM to go.
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
@@ -87,7 +96,7 @@ func main() {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
 			} else {
-				fmt.Print(redText("Error reading line: ", err))
+				fmt.Println(redText("Error reading line: ", err))
 				continue
 			}
 			return
@@ -105,7 +114,7 @@ func main() {
 					if err.Error() == "Interrupt" {
 						fmt.Println(redText("Exiting from user input."))
 					} else {
-						fmt.Print(redText("Error reading line: ", err))
+						fmt.Println(redText("Error reading line: ", err))
 						continue
 					}
 					return
@@ -150,7 +159,7 @@ func main() {
 					if err.Error() == "Interrupt" {
 						fmt.Println(redText("Exiting from user input."))
 					} else {
-						fmt.Print(redText("Error reading line: ", err))
+						fmt.Println(redText("Error reading line: ", err))
 						continue
 					}
 					return
@@ -215,7 +224,7 @@ func main() {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
 			} else {
-				fmt.Print(redText("Error reading line: ", err))
+				fmt.Println(redText("Error reading line: ", err))
 				continue
 			}
 			return
@@ -243,117 +252,48 @@ func main() {
 		fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024a."))
 	}
 
-	// Not sure why this isn't in a for loop. Will find out soon enough.
-	// Product selection.
-	fmt.Print("Enter the products you would like to install. Use the same syntax as MPM to specify products. " +
-		"Press Enter to install all products.\n> ")
-	productsInput, err := rl.Readline()
-	if err != nil {
-		if err.Error() == "Interrupt" {
-			fmt.Println(redText("Exiting from user input."))
-		} else {
-			fmt.Print(redText("Error reading line: ", err))
-			//continue
-			os.Exit(1)
-		}
-		return
-	}
-	productsInput = strings.TrimSpace(productsInput)
-
-	var products []string
-
-	// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflects Linux. Yayyyyy.
-	if productsInput == "" {
-
-		// This list will start from the bottom and add products as it goes up the list, stopping when it matches your release.
-		// This list reflects products that have been added or renamed over time, except for R2017b, which is just the base products for MPM.
-		// This list and the next one are based on Linux. Modifications based on your operating system are made afterwards.
-		newProductsToAdd := map[string]string{
-			"R2024a": "", // No new products were added in R2024a.
-			"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
-			"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
-			"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
-			"R2022a": "Wireless_Testbench Simulink_Real-Time Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
-			"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
-			"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
-			"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
-			"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
-			"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
-			"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
-			"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
-			"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Network_Toolbox Vehicle_Dynamics_Blockset",
-			"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
-		}
-
-		// There are some products that are Windows-only or were originally Windows-only.
-		if runtime.GOOS == "windows" {
-
-			// Products to add, only applies to the base-level R2017b at the moment.
-			windowsOnlyProductsR2017b := newProductsToAdd["R2017b"]
-
-			// To remove discontinued Windows-only products, starting at R2022a.
-			if release >= "R2022a" {
-				windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+	for {
+		// Product selection.
+		fmt.Print("Enter the products you would like to install. Use the same syntax as MPM to specify products. " +
+			"Press Enter to install all products.\n> ")
+		productsInput, err := rl.Readline()
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
 			} else {
-				windowsOnlyProductsR2017b += " Data_Acquisition_Toolbox Model-Based_Calibration_Toolbox OPC_Toolbox Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Spreadsheet_Link Vehicle_Network_Toolbox"
+				fmt.Println(redText("Error reading line: ", err))
+				continue
 			}
-			newProductsToAdd["R2017b"] = windowsOnlyProductsR2017b
-
-			// Prevent products from repeating twice, as they were eventually added to Linux.
-			newProductsToAdd["R2023b"] = "Simulink_Desktop_Real-Time"
-			newProductsToAdd["R2022a"] = "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox"
-			newProductsToAdd["R2019b"] = "ROS_Toolbox Navigation_Toolbox"
-			newProductsToAdd["R2018a"] = "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset"
+			return
 		}
-		// macOS differences.
-		if runtime.GOOS == "darwin" {
 
-			// Remove discontinued products from the appropriate release.
-			if release >= "R2022a" {
-				newProductsToAdd["R2019a"] = "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset Mixed-Signal_Blockset AUTOSAR_Blockset Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox"
+		productsInput = strings.TrimSpace(productsInput)
+
+		if productsInput != "" && !checkForValidProducts(productsInput, validProducts) {
+			fmt.Println(redText("You have entered a product that does not exist."))
+			continue
+		}
+
+		// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflects Linux. Yayyyyy.
+		if productsInput == "" {
+
+			// There are some products that are Windows-only or were originally Windows-only.
+			if runtime.GOOS == "windows" {
+
+			}
+			// macOS differences.
+			if runtime.GOOS == "darwin" {
+
 			}
 
-			// Remove products that were never available for macOS.
-			newProductsToAdd["R2022a"] = "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox"
+		} else if productsInput == "parallel_products" {
 
-			// R2022a products to remove: Simulink_Real-Time
-			// R2021b products to remove: Signal_Integrity_Toolbox RF_PCB_Toolbox (yes, all R2021b entries ,lol.)
-			// R2020b products to remove: Deep_Learning_HDL_Toolbox
-			// R2019a products to remove: SoC_Blockset
-			// R2018a products to remove: Vehicle_Network_Toolbox
-			// R2017b products to remove: GPU coder, HDL Verifier, Vision_HDL_Toolbox
+			//products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
 
+		} else {
+			//products = strings.Fields(productsInput)
 		}
-
-		// The actual for loop that goes through the list above.
-		for releaseLoop, product := range newProductsToAdd {
-			if release >= releaseLoop {
-				products = append(products, strings.Fields(product)...)
-			}
-		}
-
-		// This list will start from the top and add products as it goes down the list, stopping when it matches your release.
-		// This list reflects products that have been removed or renamed over time.
-		oldProductsToAdd := map[string]string{
-			"R2021b": "Simulink_Requirements",
-			"R2020b": "Fixed-Point_Designer Trading_Toolbox",
-			"R2019b": "LTE_HDL_Toolbox",
-			"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
-			"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
-		}
-
-		// The actual for loop that goes through the list above. Note that it uses the same logic, just <= instead of >=.
-		for releaseLoop, product := range oldProductsToAdd {
-			if release <= releaseLoop {
-				products = append(products, strings.Fields(product)...)
-			}
-		}
-	} else if productsInput == "parallel_products" {
-
-		products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
-
-	} else {
-		products = strings.Fields(productsInput)
+		break
 	}
 
 	// Set the default installation path based on your OS.
@@ -367,24 +307,26 @@ func main() {
 		defaultInstallationPath = "/usr/local/MATLAB/" + release
 	}
 
-	fmt.Print("Enter the full path where you would like to install these products. "+
-		"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
+	for {
+		fmt.Print("Enter the full path where you would like to install these products. "+
+			"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
 
-	installPath, err := rl.Readline()
-	if err != nil {
-		if err.Error() == "Interrupt" {
-			fmt.Println(redText("Exiting from user input."))
-		} else {
-			fmt.Print(redText("Error reading line: ", err))
-			//continue
-			os.Exit(1)
+		installPath, err := rl.Readline()
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Println(redText("Error reading line: ", err))
+				continue
+			}
+			return
 		}
-		return
-	}
-	installPath = strings.TrimSpace(installPath)
+		installPath = strings.TrimSpace(installPath)
 
-	if installPath == "" {
-		installPath = defaultInstallationPath
+		if installPath == "" {
+			installPath = defaultInstallationPath
+		}
+		break
 	}
 
 	// Add some code to check the following:
@@ -400,7 +342,7 @@ func main() {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
 			} else {
-				fmt.Print(redText("Error reading line: ", err))
+				fmt.Println(redText("Error reading line: ", err))
 				continue
 			}
 			return
@@ -497,7 +439,7 @@ func main() {
 	// - Place the license file if you asked to use one.
 }
 
-// Clean input function
+// Clean input function.
 func cleanInput(input string) string {
 	return strings.TrimSpace(input)
 }
@@ -522,4 +464,145 @@ func downloadFile(url string, filePath string) error {
 	}
 
 	return nil
+}
+
+// Check to make sure your entered products exist.
+func checkForValidProducts(input string, validProducts map[string]bool) bool {
+	products := strings.Split(input, " ")
+	for _, product := range products {
+		if _, exists := validProducts[product]; !exists {
+			return false
+		}
+	}
+	return true
+}
+
+// Function to get the sorted product list.
+// I know what you're thinking, "Why is every product on its own separate line???". The answer is for my sanity, which I think is far more important than line count.
+func getCompleteProductList() []string {
+	products := []string{
+		"Aerospace_Blockset",
+		"Aerospace_Toolbox",
+		"Antenna_Toolbox",
+		"Audio_System_Toolbox",
+		"Audio_Toolbox",
+		"AUTOSAR_Blockset",
+		"Automated_Driving_Toolbox",
+		"Automated_Driving_System_Toolbox",
+		"Bioinformatics_Toolbox",
+		"Bluet_Bluet",
+		"C2000_Microcontroller_Blockset",
+		"Communications_System_Toolbox",
+		"Communications_Toolbox",
+		"Computer_Vision_System_Toolbox",
+		"Computer_Vision_Toolbox",
+		"Control_System_Toolbox",
+		"Curve_Fitting_Toolbox",
+		"Data_Acquisition_Toolbox",
+		"Database_Toolbox",
+		"Datafeed_Toolbox",
+		"DDS_Blockset",
+		"Deep_Learning_HDL_Toolbox",
+		"Deep_Learning_Toolbox",
+		"DO_Qualification_Kit",
+		"DSP_HDL_Toolbox",
+		"DSP_System_Toolbox",
+		"Econometrics_Toolbox",
+		"Embedded_Coder",
+		"Filter_Design_HDL_Coder",
+		"Financial_Instruments_Toolbox",
+		"Financial_Toolbox",
+		"Fixed-Point_Designer",
+		"Fuzzy_Logic_Toolbox",
+		"GPU_Coder",
+		"Global_Optimization_Toolbox",
+		"HDL_Coder",
+		"HDL_Verifier",
+		"Image_Acquisition_Toolbox",
+		"Image_Processing_Toolbox",
+		"Industrial_Communication_Toolbox",
+		"Instrument_Control_Toolbox",
+		"Lidar_Toolbox",
+		"LTE_Toolbox",
+		"Mapping_Toolbox",
+		"MATLAB",
+		"MATLAB_Coder",
+		"MATLAB_Compiler",
+		"MATLAB_Compiler_SDK",
+		"MATLAB_Parallel_Server",
+		"MATLAB_Production_Server",
+		"MATLAB_Report_Generator",
+		"MATLAB_Test",
+		"MATLAB_Web_App_Server",
+		"Medical_Imaging_Toolbox",
+		"Mixed-Signal_Blockset",
+		"Model_Predictive_Control_Toolbox",
+		"Motor_Control_Blockset",
+		"Navigation_Toolbox",
+		"Optimization_Toolbox",
+		"Parallel_Computing_Toolbox",
+		"Partial_Differential_Equation_Toolbox",
+		"Phased_Array_System_Toolbox",
+		"Polyspace_Bug_Finder",
+		"Polyspace_Bug_Finder_Server",
+		"Polyspace_Code_Prover",
+		"Polyspace_Code_Prover_Server",
+		"Polyspace_Test",
+		"Predictive_Maintenance_Toolbox",
+		"Radar_Toolbox",
+		"Reinforcement_Learning_Toolbox",
+		"Requirements_Toolbox",
+		"RF_Blockset",
+		"RF_PCB_Toolbox",
+		"RF_Toolbox",
+		"Robotics_System_Toolbox",
+		"ROS_Toolbox",
+		"Satellite_Communications_Toolbox",
+		"Sensor_Fusion_and_Tracking_Toolbox",
+		"SerDes_Toolbox",
+		"Signal_Integrity_Toolbox",
+		"Signal_Processing_Toolbox",
+		"SimBiology",
+		"SimEvents",
+		"Simscape",
+		"Simscape_Battery",
+		"Simscape_Driveline",
+		"Simscape_Electrical",
+		"Simscape_Fluids",
+		"Simscape_Multibody",
+		"Simulink",
+		"Simulink_3D_Animation",
+		"Simulink_Check",
+		"Simulink_Coder",
+		"Simulink_Compiler",
+		"Simulink_Control_Design",
+		"Simulink_Coverage",
+		"Simulink_Design_Optimization",
+		"Simulink_Design_Verifier",
+		"Simulink_Desktop_Real-Time",
+		"Simulink_Fault_Analyzer",
+		"Simulink_PLC_Coder",
+		"Simulink_Real-Time",
+		"Simulink_Report_Generator",
+		"Simulink_Test",
+		"SoC_Blockset",
+		"Stateflow",
+		"Statistics_and_Machine_Learning_Toolbox",
+		"Symbolic_Math_Toolbox",
+		"System_Composer",
+		"System_Identification_Toolbox",
+		"Text_Analytics_Toolbox",
+		"UAV_Toolbox",
+		"Vehicle_Dynamics_Blockset",
+		"Vehicle_Network_Toolbox",
+		"Vision_HDL_Toolbox",
+		"Wavelet_Toolbox",
+		"Wireless_HDL_Toolbox",
+		"Wireless_Testbench",
+		"5G_Toolbox",
+		"WLAN_Toolbox",
+	}
+
+	sort.Strings(products)
+	return products
 }
