@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,31 +13,38 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/chzyer/readline"
 	"github.com/fatih/color"
 )
 
 func main() {
 
-	// Setup variables that will be used across this program.
-	var debug bool
-	var defaultTMP string
-	var mpmDownloadPath string
-	var mpmURL string
-	var mpmDownloadNeeded bool
-	var mpmExtractNeeded bool
-	var release string
-	var defaultInstallationPath string
-	var licenseFileUsed bool
-	var licensePath string
-	var mpmFullPath string
+	var (
+		debug                   bool
+		defaultTMP              string
+		mpmDownloadPath         string
+		mpmURL                  string
+		mpmDownloadNeeded       bool
+		mpmExtractNeeded        bool
+		release                 string
+		defaultInstallationPath string
+		licenseFileUsed         bool
+		licensePath             string
+		mpmFullPath             string
+	)
 	mpmDownloadNeeded = true
 	mpmExtractNeeded = true
-	red := color.New(color.FgRed).SprintFunc()
+	redText := color.New(color.FgRed).SprintFunc()
 	redBackground := color.New(color.BgRed).SprintFunc()
-	blue := color.New(color.BgBlue).SprintFunc()
-	reader := bufio.NewReader(os.Stdin)
+	blueBackground := color.New(color.BgBlue).SprintFunc()
 
-	// Add some code that'll allow arrow keys to be used when prompted for user input.
+	// Reader to make using the command line not suck.
+	rl, err := readline.New("> ")
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+
 	// Setup for better Ctrl+C messaging. This is a channel to receive OS signals.
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
@@ -109,7 +115,16 @@ func main() {
 	for {
 		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		mpmDownloadPath, _ = reader.ReadString('\n')
+		mpmDownloadPath, _ = rl.Readline()
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Print(redText("Error reading line: ", err))
+				continue
+			}
+			return
+		}
 		mpmDownloadPath = strings.TrimSpace(mpmDownloadPath)
 
 		// Debug point 1
@@ -515,7 +530,7 @@ func main() {
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		fmt.Println(red("Error executing MPM. See the error above for more information.", err))
 	}
