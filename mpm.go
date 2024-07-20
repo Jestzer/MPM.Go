@@ -33,7 +33,7 @@ func main() {
 		mpmFullPath             string
 	)
 	mpmDownloadNeeded = true
-	userOS := runtime.GOOS
+	platform := runtime.GOOS
 	redText := color.New(color.FgRed).SprintFunc()
 	redBackground := color.New(color.BgRed).SprintFunc()
 
@@ -60,14 +60,16 @@ func main() {
 	}()
 
 	// Figure out your OS.
-	switch userOS {
+	switch platform {
 	case "darwin":
 		defaultTMP = "/tmp"
 		switch runtime.GOARCH {
 		case "amd64":
 			mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
+			platform = "macOSx64"
 		case "arm64":
 			mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
+			platform = "macOSARM"
 		}
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
@@ -146,13 +148,13 @@ func main() {
 
 		// Check if MPM already exists in the selected directory.
 		fileName := filepath.Join(mpmDownloadPath, "mpm")
-		if userOS == "windows" {
+		if platform == "windows" {
 			fileName = filepath.Join(mpmDownloadPath, "mpm.exe")
 		}
 		_, err := os.Stat(fileName)
 		for {
 			if err == nil {
-				fmt.Print("MPM already exists in this directory. Would you like to overwrite it? ")
+				fmt.Print("MPM already exists in this directory. Would you like to overwrite it?")
 				fmt.Print(redText("This will also overwrite the directory \"mpm-contents\" and its contents if it already exists. (y/n)\n> "))
 				overwriteMPM, err := rl.Readline()
 				if err != nil {
@@ -277,33 +279,35 @@ func main() {
 		// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflects Linux. Yayyyyy.
 		if productsInput == "" {
 
-			// There are some products that are Windows-only or were originally Windows-only.
-			if runtime.GOOS == "windows" {
+			// First, filter products that have never been made available on your platform.
+			if platform == "linux" {
+				// products to remove: "Data_Acquisition_Toolbox", "Spreadsheet_Link",
+			} else if platform == "macOSx64" {
+
+			} else if platform == "macOSARM" {
 
 			}
-			// macOS differences.
-			if runtime.GOOS == "darwin" {
 
-			}
+			// Next, filter productes are unavailable on your release. Some of these are just renames.
 
 		} else if productsInput == "parallel_products" {
 
-			//products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
+			products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
 
 		} else {
-			//products = strings.Fields(productsInput)
+			products = strings.Fields(productsInput)
 		}
 		break
 	}
 
 	// Set the default installation path based on your OS.
-	if runtime.GOOS == "darwin" {
+	if platform == "macOSx64" || platform == "macOSARM" {
 		defaultInstallationPath = "/Applications/MATLAB_" + release
 	}
-	if runtime.GOOS == "windows" {
+	if platform == "windows" {
 		defaultInstallationPath = "C:\\Program Files\\MATLAB\\" + release
 	}
-	if runtime.GOOS == "linux" {
+	if platform == "linux" {
 		defaultInstallationPath = "/usr/local/MATLAB/" + release
 	}
 
@@ -481,6 +485,7 @@ func checkForValidProducts(input string, validProducts map[string]bool) bool {
 // I know what you're thinking, "Why is every product on its own separate line???". The answer is for my sanity, which I think is far more important than line count.
 func getCompleteProductList() []string {
 	products := []string{
+		"5G_Toolbox",
 		"Aerospace_Blockset",
 		"Aerospace_Toolbox",
 		"Antenna_Toolbox",
@@ -490,7 +495,7 @@ func getCompleteProductList() []string {
 		"Automated_Driving_Toolbox",
 		"Automated_Driving_System_Toolbox",
 		"Bioinformatics_Toolbox",
-		"Bluet_Bluet",
+		"Bluetooth_Toolbox",
 		"C2000_Microcontroller_Blockset",
 		"Communications_System_Toolbox",
 		"Communications_Toolbox",
@@ -504,7 +509,7 @@ func getCompleteProductList() []string {
 		"DDS_Blockset",
 		"Deep_Learning_HDL_Toolbox",
 		"Deep_Learning_Toolbox",
-		"DO_Qualification_Kit",
+		// "DO_Qualification_Kit", MPM does not support this.
 		"DSP_HDL_Toolbox",
 		"DSP_System_Toolbox",
 		"Econometrics_Toolbox",
@@ -513,22 +518,27 @@ func getCompleteProductList() []string {
 		"Financial_Instruments_Toolbox",
 		"Financial_Toolbox",
 		"Fixed-Point_Designer",
+		"Fixed_Point_Designer", // Really???
 		"Fuzzy_Logic_Toolbox",
 		"GPU_Coder",
 		"Global_Optimization_Toolbox",
 		"HDL_Coder",
 		"HDL_Verifier",
+		// "IEC_Certification_Kit", MPM does not support this.
 		"Image_Acquisition_Toolbox",
 		"Image_Processing_Toolbox",
 		"Industrial_Communication_Toolbox",
 		"Instrument_Control_Toolbox",
 		"Lidar_Toolbox",
+		"LTE_HDL_Toolbox",
+		"LTE_System_Toolbox",
 		"LTE_Toolbox",
 		"Mapping_Toolbox",
 		"MATLAB",
 		"MATLAB_Coder",
 		"MATLAB_Compiler",
 		"MATLAB_Compiler_SDK",
+		"MATLAB_Distributed_Computing_Server",
 		"MATLAB_Parallel_Server",
 		"MATLAB_Production_Server",
 		"MATLAB_Report_Generator",
@@ -536,9 +546,12 @@ func getCompleteProductList() []string {
 		"MATLAB_Web_App_Server",
 		"Medical_Imaging_Toolbox",
 		"Mixed-Signal_Blockset",
+		"Model_Based_Calibration_Toolbox",
 		"Model_Predictive_Control_Toolbox",
 		"Motor_Control_Blockset",
 		"Navigation_Toolbox",
+		"Neural_Network_Toolbox",
+		"OPC_Toolbox",
 		"Optimization_Toolbox",
 		"Parallel_Computing_Toolbox",
 		"Partial_Differential_Equation_Toolbox",
@@ -548,6 +561,7 @@ func getCompleteProductList() []string {
 		"Polyspace_Code_Prover",
 		"Polyspace_Code_Prover_Server",
 		"Polyspace_Test",
+		"Powertrain_Blockset",
 		"Predictive_Maintenance_Toolbox",
 		"Radar_Toolbox",
 		"Reinforcement_Learning_Toolbox",
@@ -555,6 +569,8 @@ func getCompleteProductList() []string {
 		"RF_Blockset",
 		"RF_PCB_Toolbox",
 		"RF_Toolbox",
+		"Risk_Management_Toolbox",
+		"Robust_Control_Toolbox",
 		"Robotics_System_Toolbox",
 		"ROS_Toolbox",
 		"Satellite_Communications_Toolbox",
@@ -568,11 +584,13 @@ func getCompleteProductList() []string {
 		"Simscape_Battery",
 		"Simscape_Driveline",
 		"Simscape_Electrical",
+		"Simscape_Electronics",
 		"Simscape_Fluids",
 		"Simscape_Multibody",
 		"Simulink",
 		"Simulink_3D_Animation",
 		"Simulink_Check",
+		// "Simulink_Code_Inspector", MPM does not support this.
 		"Simulink_Coder",
 		"Simulink_Compiler",
 		"Simulink_Control_Design",
@@ -580,18 +598,24 @@ func getCompleteProductList() []string {
 		"Simulink_Design_Optimization",
 		"Simulink_Design_Verifier",
 		"Simulink_Desktop_Real-Time",
+		"Simulink_Desktop_Real_Time", // killing me.
 		"Simulink_Fault_Analyzer",
 		"Simulink_PLC_Coder",
+		"Simscape_Power_Systems",
 		"Simulink_Real-Time",
+		"Simulink_Real_Time", // STOP
 		"Simulink_Report_Generator",
+		"Simulink_Requirements",
 		"Simulink_Test",
 		"SoC_Blockset",
+		"Spreadsheet_Link",
 		"Stateflow",
 		"Statistics_and_Machine_Learning_Toolbox",
 		"Symbolic_Math_Toolbox",
 		"System_Composer",
 		"System_Identification_Toolbox",
 		"Text_Analytics_Toolbox",
+		"Trading_Toolbox",
 		"UAV_Toolbox",
 		"Vehicle_Dynamics_Blockset",
 		"Vehicle_Network_Toolbox",
@@ -599,7 +623,7 @@ func getCompleteProductList() []string {
 		"Wavelet_Toolbox",
 		"Wireless_HDL_Toolbox",
 		"Wireless_Testbench",
-		"5G_Toolbox",
+		"WLAN_System_Toolbox",
 		"WLAN_Toolbox",
 	}
 
