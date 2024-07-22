@@ -148,7 +148,6 @@ func main() {
 		for {
 			if err == nil {
 				fmt.Print("MPM already exists in this directory. Would you like to overwrite it?")
-				fmt.Print(redText("This will also overwrite the directory \"mpm-contents\" and its contents if it already exists. (y/n)\n> "))
 				overwriteMPM, err := rl.Readline()
 				if err != nil {
 					if err.Error() == "Interrupt" {
@@ -164,6 +163,7 @@ func main() {
 				if overwriteMPM == "n" || overwriteMPM == "N" {
 					fmt.Println("Skipping download.")
 					mpmDownloadNeeded = false
+					break
 				}
 				if overwriteMPM == "y" || overwriteMPM == "Y" {
 					break
@@ -371,10 +371,10 @@ func main() {
 	}
 
 	if runtime.GOOS == "darwin" {
-		mpmFullPath = mpmDownloadPath + "//mpm-contents//bin//maci64//mpm"
+		mpmFullPath = mpmDownloadPath + "/mpm"
 	}
 	if runtime.GOOS == "windows" {
-		mpmFullPath = mpmDownloadPath + "\\mpm-contents\\bin\\win64\\mpm.exe"
+		mpmFullPath = mpmDownloadPath + "\\mpm.exe"
 	}
 	if runtime.GOOS == "linux" {
 		mpmFullPath = mpmDownloadPath + "/mpm"
