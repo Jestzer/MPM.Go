@@ -125,7 +125,7 @@ func main() {
 				if createDir == "y" || createDir == "Y" {
 					err := os.MkdirAll(mpmDownloadPath, 0755)
 					if err != nil {
-						fmt.Println(redText("Failed to create the directory:", err, "Please select a different directory."))
+						fmt.Println(redText("Failed to create the directory: ", err, "Please select a different directory."))
 						continue
 					}
 					fmt.Println("Directory created successfully.")
@@ -134,7 +134,7 @@ func main() {
 					continue
 				}
 			} else if err != nil {
-				fmt.Println(redText("Error checking the directory:", err, "Please select a different directory."))
+				fmt.Println(redText("Error checking the directory: ", err, "Please select a different directory."))
 				continue
 			}
 		}
@@ -195,7 +195,7 @@ func main() {
 			err := cmd.Run()
 
 			if err != nil {
-				fmt.Println("Failed to execute the command:", err)
+				fmt.Println("Failed to execute the command: ", err)
 				fmt.Print(". Either select a different directory, run this program with needed privileges, " +
 					"or make modifications to MPM outside of this program.")
 				continue
@@ -361,7 +361,7 @@ func main() {
 			// Check if the license file exists and has the correct extension.
 			_, err := os.Stat(licensePath)
 			if err != nil {
-				fmt.Println(redText("Error:", err))
+				fmt.Println(redText("Error: ", err))
 				continue
 			} else if !strings.HasSuffix(licensePath, ".dat") && !strings.HasSuffix(licensePath, ".lic") {
 				fmt.Println(redText("Invalid file extension. Please provide a file with .dat or .lic extension."))
@@ -398,7 +398,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(redText("Error executing MPM. See the error above for more information.", err))
+		fmt.Println(redText("Error executing MPM. See the error above for more information. ", err))
 	}
 
 	// Create the licenses directory and the file specified, if you specified one.
@@ -408,7 +408,7 @@ func main() {
 		licensesInstallationDirectory := filepath.Join(installPath, "licenses")
 		err := os.Mkdir(licensesInstallationDirectory, 0755)
 		if err != nil {
-			fmt.Println(redText("Error creating \"licenses\" directory:", err))
+			fmt.Println(redText("Error creating \"licenses\" directory: ", err))
 		}
 
 		// Copy the license file to the "licenses" directory.
@@ -417,19 +417,19 @@ func main() {
 
 		src, err := os.Open(licensePath)
 		if err != nil {
-			fmt.Println(redText("Error opening license file:", err))
+			fmt.Println(redText("Error opening license file: ", err))
 		}
 		defer src.Close()
 
 		dest, err := os.Create(destPath)
 		if err != nil {
-			fmt.Println(redText("Error creating destination file:", err))
+			fmt.Println(redText("Error creating destination file: ", err))
 		}
 		defer dest.Close()
 
 		_, err = io.Copy(dest, src)
 		if err != nil {
-			fmt.Println(redText("Error copying license file:", err))
+			fmt.Println(redText("Error copying license file: ", err))
 		}
 	}
 	// Next steps:
