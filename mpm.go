@@ -147,7 +147,7 @@ func main() {
 		_, err := os.Stat(fileName)
 		for {
 			if err == nil {
-				fmt.Print("MPM already exists in this directory. Would you like to overwrite it?")
+				fmt.Println("MPM already exists in this directory. Would you like to overwrite it?")
 				overwriteMPM, err := rl.Readline()
 				if err != nil {
 					if err.Error() == "Interrupt" {
@@ -312,7 +312,8 @@ func main() {
 		fmt.Print("Enter the full path where you would like to install these products. "+
 			"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
 
-		installPath, err := rl.Readline()
+		var installPathInput string // For whatever reason, if I try to use installPath with ReadLine, it erases its value, so I'm using installPathInput instead.
+		installPathInput, err := rl.Readline()
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -322,6 +323,8 @@ func main() {
 			}
 			return
 		}
+
+		installPath = installPathInput
 		installPath = strings.TrimSpace(installPath)
 
 		if installPath == "" {
