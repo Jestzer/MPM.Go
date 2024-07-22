@@ -481,152 +481,294 @@ func checkForValidProducts(input string, validProducts map[string]bool) bool {
 	return true
 }
 
-// Function to get the sorted product list.
-// I know what you're thinking, "Why is every product on its own separate line???". The answer is for my sanity, which I think is far more important than line count.
-func getCompleteProductList() []string {
-	products := []string{
-		"5G_Toolbox",
-		"Aerospace_Blockset",
-		"Aerospace_Toolbox",
-		"Antenna_Toolbox",
-		"Audio_System_Toolbox",
-		"Audio_Toolbox",
-		"AUTOSAR_Blockset",
-		"Automated_Driving_Toolbox",
-		"Automated_Driving_System_Toolbox",
-		"Bioinformatics_Toolbox",
-		"Bluetooth_Toolbox",
-		"C2000_Microcontroller_Blockset",
-		"Communications_System_Toolbox",
-		"Communications_Toolbox",
-		"Computer_Vision_System_Toolbox",
-		"Computer_Vision_Toolbox",
-		"Control_System_Toolbox",
-		"Curve_Fitting_Toolbox",
-		"Data_Acquisition_Toolbox",
-		"Database_Toolbox",
-		"Datafeed_Toolbox",
-		"DDS_Blockset",
-		"Deep_Learning_HDL_Toolbox",
-		"Deep_Learning_Toolbox",
-		// "DO_Qualification_Kit", MPM does not support this.
-		"DSP_HDL_Toolbox",
-		"DSP_System_Toolbox",
-		"Econometrics_Toolbox",
-		"Embedded_Coder",
-		"Filter_Design_HDL_Coder",
-		"Financial_Instruments_Toolbox",
-		"Financial_Toolbox",
-		"Fixed-Point_Designer",
-		"Fixed_Point_Designer", // Really???
-		"Fuzzy_Logic_Toolbox",
-		"GPU_Coder",
-		"Global_Optimization_Toolbox",
-		"HDL_Coder",
-		"HDL_Verifier",
-		// "IEC_Certification_Kit", MPM does not support this.
-		"Image_Acquisition_Toolbox",
-		"Image_Processing_Toolbox",
-		"Industrial_Communication_Toolbox",
-		"Instrument_Control_Toolbox",
-		"Lidar_Toolbox",
-		"LTE_HDL_Toolbox",
-		"LTE_System_Toolbox",
-		"LTE_Toolbox",
-		"Mapping_Toolbox",
-		"MATLAB",
-		"MATLAB_Coder",
-		"MATLAB_Compiler",
-		"MATLAB_Compiler_SDK",
-		"MATLAB_Distributed_Computing_Server",
-		"MATLAB_Parallel_Server",
-		"MATLAB_Production_Server",
-		"MATLAB_Report_Generator",
-		"MATLAB_Test",
-		"MATLAB_Web_App_Server",
-		"Medical_Imaging_Toolbox",
-		"Mixed-Signal_Blockset",
-		"Model_Based_Calibration_Toolbox",
-		"Model_Predictive_Control_Toolbox",
-		"Motor_Control_Blockset",
-		"Navigation_Toolbox",
-		"Neural_Network_Toolbox",
-		"OPC_Toolbox",
-		"Optimization_Toolbox",
-		"Parallel_Computing_Toolbox",
-		"Partial_Differential_Equation_Toolbox",
-		"Phased_Array_System_Toolbox",
-		"Polyspace_Bug_Finder",
-		"Polyspace_Bug_Finder_Server",
-		"Polyspace_Code_Prover",
-		"Polyspace_Code_Prover_Server",
-		"Polyspace_Test",
-		"Powertrain_Blockset",
-		"Predictive_Maintenance_Toolbox",
-		"Radar_Toolbox",
-		"Reinforcement_Learning_Toolbox",
-		"Requirements_Toolbox",
-		"RF_Blockset",
-		"RF_PCB_Toolbox",
-		"RF_Toolbox",
-		"Risk_Management_Toolbox",
-		"Robust_Control_Toolbox",
-		"Robotics_System_Toolbox",
-		"ROS_Toolbox",
-		"Satellite_Communications_Toolbox",
-		"Sensor_Fusion_and_Tracking_Toolbox",
-		"SerDes_Toolbox",
-		"Signal_Integrity_Toolbox",
-		"Signal_Processing_Toolbox",
-		"SimBiology",
-		"SimEvents",
-		"Simscape",
-		"Simscape_Battery",
-		"Simscape_Driveline",
-		"Simscape_Electrical",
-		"Simscape_Electronics",
-		"Simscape_Fluids",
-		"Simscape_Multibody",
-		"Simulink",
-		"Simulink_3D_Animation",
-		"Simulink_Check",
-		// "Simulink_Code_Inspector", MPM does not support this.
-		"Simulink_Coder",
-		"Simulink_Compiler",
-		"Simulink_Control_Design",
-		"Simulink_Coverage",
-		"Simulink_Design_Optimization",
-		"Simulink_Design_Verifier",
-		"Simulink_Desktop_Real-Time",
-		"Simulink_Desktop_Real_Time", // killing me.
-		"Simulink_Fault_Analyzer",
-		"Simulink_PLC_Coder",
-		"Simscape_Power_Systems",
-		"Simulink_Real-Time",
-		"Simulink_Real_Time", // STOP
-		"Simulink_Report_Generator",
-		"Simulink_Requirements",
-		"Simulink_Test",
-		"SoC_Blockset",
-		"Spreadsheet_Link",
-		"Stateflow",
-		"Statistics_and_Machine_Learning_Toolbox",
-		"Symbolic_Math_Toolbox",
-		"System_Composer",
-		"System_Identification_Toolbox",
-		"Text_Analytics_Toolbox",
-		"Trading_Toolbox",
-		"UAV_Toolbox",
-		"Vehicle_Dynamics_Blockset",
-		"Vehicle_Network_Toolbox",
-		"Vision_HDL_Toolbox",
-		"Wavelet_Toolbox",
-		"Wireless_HDL_Toolbox",
-		"Wireless_Testbench",
-		"WLAN_System_Toolbox",
-		"WLAN_Toolbox",
-	}
+// Lists
 
-	sort.Strings(products)
-	return products
-}
+// Every product for every scenario
+Aerospace_Blockset
+Aerospace_Toolbox
+Antenna_Toolbox
+Bioinformatics_Toolbox
+Control_System_Toolbox
+Curve_Fitting_Toolbox
+DSP_System_Toolbox
+Database_Toolbox
+Datafeed_Toolbox
+Econometrics_Toolbox
+Embedded_Coder
+Filter_Design_HDL_Coder
+Financial_Instruments_Toolbox
+Financial_Toolbox
+Fuzzy_Logic_Toolbox
+GPU_Coder
+Global_Optimization_Toolbox
+HDL_Coder
+HDL_Verifier
+Image_Acquisition_Toolbox
+Image_Processing_Toolbox
+Instrument_Control_Toolbox
+MATLAB
+MATLAB_Coder
+MATLAB_Compiler
+MATLAB_Compiler_SDK
+MATLAB_Report_Generator
+Mapping_Toolbox
+Model_Predictive_Control_Toolbox
+Optimization_Toolbox
+Parallel_Computing_Toolbox
+Partial_Differential_Equation_Toolbox
+Phased_Array_System_Toolbox
+Powertrain_Blockset
+RF_Blockset
+RF_Toolbox
+Risk_Management_Toolbox
+Robotics_System_Toolbox
+Robust_Control_Toolbox
+Signal_Processing_Toolbox
+SimBiology
+SimEvents
+Simscape
+Simscape_Driveline
+Simscape_Fluids
+Simscape_Multibody
+Simulink
+Simulink_3D_Animation
+Simulink_Check
+Simulink_Coder
+Simulink_Control_Design
+Simulink_Coverage
+Simulink_Design_Optimization
+Simulink_Design_Verifier
+Simulink_Report_Generator
+Simulink_Test
+Stateflow
+Statistics_and_Machine_Learning_Toolbox
+Symbolic_Math_Toolbox
+System_Identification_Toolbox
+Text_Analytics_Toolbox
+Vision_HDL_Toolbox
+Wavelet_Toolbox
+
+// Every possible added product
+5G_Toolbox
+Audio_System_Toolbox
+Audio_Toolbox
+AUTOSAR_Blockset
+Automated_Driving_Toolbox
+Automated_Driving_System_Toolbox
+Bluetooth_Toolbox
+C2000_Microcontroller_Blockset
+Communications_System_Toolbox
+Communications_Toolbox
+Computer_Vision_System_Toolbox
+Computer_Vision_Toolbox
+Data_Acquisition_Toolbox
+DDS_Blockset
+Deep_Learning_HDL_Toolbox
+Deep_Learning_Toolbox
+DSP_HDL_Toolbox
+Fixed-Point_Designer
+Fixed_Point_Designer
+Industrial_Communication_Toolbox
+Lidar_Toolbox
+LTE_HDL_Toolbox
+LTE_System_Toolbox
+LTE_Toolbox
+MATLAB_Distributed_Computing_Server
+MATLAB_Parallel_Server
+MATLAB_Production_Server
+MATLAB_Test
+MATLAB_Web_App_Server
+Medical_Imaging_Toolbox
+Mixed-Signal_Blockset
+Model_Based_Calibration_Toolbox
+Motor_Control_Blockset
+Navigation_Toolbox
+Neural_Network_Toolbox
+OPC_Toolbox
+Polyspace_Bug_Finder
+Polyspace_Bug_Finder_Server
+Polyspace_Code_Prover
+Polyspace_Code_Prover_Server
+Polyspace_Test
+Predictive_Maintenance_Toolbox
+Radar_Toolbox
+Reinforcement_Learning_Toolbox
+Requirements_Toolbox
+RF_PCB_Toolbox
+ROS_Toolbox
+Satellite_Communications_Toolbox
+Sensor_Fusion_and_Tracking_Toolbox
+SerDes_Toolbox
+Signal_Integrity_Toolbox
+Simscape_Battery
+Simscape_Electrical
+Simscape_Electronics
+Simulink_Compiler
+Simulink_Desktop_Real-Time
+Simulink_Desktop_Real_Time
+Simulink_Fault_Analyzer
+Simulink_PLC_Coder
+Simscape_Power_Systems
+Simulink_Real-Time
+Simulink_Real_Time
+Simulink_Requirements
+SoC_Blockset
+Spreadsheet_Link
+System_Composer
+Trading_Toolbox
+UAV_Toolbox
+Vehicle_Dynamics_Blockset
+Vehicle_Network_Toolbox
+Wireless_HDL_Toolbox
+Wireless_Testbench
+WLAN_System_Toolbox
+WLAN_Toolbox
+
+// R2017b, Universal
+Audio_System_Toolbox
+Automated_Driving_System_Toolbox
+Communications_System_Toolbox
+Computer_Vision_System_Toolbox
+Fixed_Point_Designer
+LTE_HDL_Toolbox
+LTE_System_Toolbox
+MATLAB_Distributed_Computing_Server
+Model_Based_Calibration_Toolbox
+Neural_Network_Toolbox
+Simscape_Electronics
+Simscape_Power_Systems
+Simulink_Requirements
+Trading_Toolbox
+WLAN_System_Toolbox
+
+// R2018a, Universal
+
+// R2018b, Universal
+
+// R2019a, Universal
+
+// R2019b, Universal
+
+// R2020a, Universal
+
+// R2020b, Universal
+
+// R2021a, Universal
+
+// R2021b, Universal
+
+// R2022a, Universal
+
+// R2022b, Universal
+
+// R2023a, Universal
+
+// R2023b, Universal
+
+// R2024a, Universal
+
+// R2017b, Windows
+OPC_Toolbox
+Simulink_Desktop_Real_Time
+Simulink_PLC_Coder
+Simulink_Real_Time
+Vehicle_Network_Toolbox
+
+// R2018a, Windows
+Vehicle_Network_Toolbox
+
+// R2018b, Windows
+
+// R2019a, Windows
+
+// R2019b, Windows
+
+// R2020a, Windows
+
+// R2020b, Windows
+
+// R2021a, Windows
+
+// R2021b, Windows
+
+// R2022a, Windows
+
+// R2022b, Windows
+
+// R2023a, Windows
+
+// R2023b, Windows
+
+// R2024a, Windows
+
+// R2017b, Linux
+Vehicle_Network_Toolbox
+
+// R2018a, Linux
+Vehicle_Network_Toolbox
+
+// R2018b, Linux
+
+// R2019a, Linux
+
+// R2019b, Linux
+
+// R2020a, Linux
+
+// R2020b, Linux
+
+// R2021a, Linux
+
+// R2021b, Linux
+
+// R2022a, Linux
+
+// R2022b, Linux
+
+// R2023a, Linux
+
+// R2023b, Linux
+
+// R2024a, Linux
+
+// R2017b, macOSx64
+Simulink_Desktop_Real_Time
+
+// R2018a, macOSx64
+
+// R2018b, macOSx64
+
+// R2019a, macOSx64
+
+// R2019b, macOSx64
+
+// R2020a, macOSx64
+
+// R2020b, macOSx64
+
+// R2021a, macOSx64
+
+// R2021b, macOSx64
+
+// R2022a, macOSx64
+
+// R2022b, macOSx64
+
+// R2023a, macOSx64
+
+// R2023b, macOSx64
+
+// R2024a, macOSx64
+
+// R2023b, macOSARM
+
+// R2024a, macOSARM
+
+// All releases, Windows
+Data_Acquisition_Toolbox
+Spreadsheet_Link
+
+// All releases, Windows, Linux and macOSx64
+MATLAB_Production_Server
+Polyspace_Bug_Finder
+Polyspace_Code_Prover
