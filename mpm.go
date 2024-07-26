@@ -316,9 +316,11 @@ func main() {
 		// Check the relevent list
 		if platform == "windows" {
 			products = strings.Fields(productsInput)
-			if !checkProductsExist(products, r2017bWindows) {
-				fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
-				continue
+			if release == "R2017b" {
+				if !checkProductsExist(products, r2017bWindows) {
+					fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
+					continue
+				}
 			}
 		}
 
