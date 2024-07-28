@@ -30,6 +30,9 @@ func main() {
 		licenseFileUsed         bool
 		licensePath             string
 		mpmFullPath             string
+		newProductsToAdd        map[string]string
+		oldProductsToAdd        map[string]string
+		allProducts             []string
 	)
 	mpmDownloadNeeded = true
 	platform := runtime.GOOS
@@ -264,126 +267,126 @@ func main() {
 
 		productsInput = strings.TrimSpace(productsInput)
 
-		var products []string
-		var newProductsToAdd map[string]string
-		var oldProductsToAdd map[string]string
+		// I will begin assembling the full product list based on your release and platform.
+		// This is to ensure the products you're specifying exist or that a full list is assembled if you decide to install everything.
+		// Notes:
+		// - No oldProductsToAdd is needed for macOSARM at the moment.
+		// - No new products were added in R2024a for any release, so they are ommitted entries.
 
-		// Add some code below that will break up these 2 lists between the 3 Operating Systems because right now, this only reflects Linux. Yayyyyy.
+		// new products to add
+		if platform == "windows" {
+			newProductsToAdd = map[string]string{
+				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
+				"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
+				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
+				"R2022a": "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
+				"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
+				"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
+				"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
+				"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
+				"R2019b": "ROS_Toolbox Navigation_Toolbox",
+				"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
+				"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
+				"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset",
+				"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Data_Acquisition_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Model-Based_Calibration_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Simulink_Report_Generator Simulink_Test Spreadsheet_Link Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vehicle_Network_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
+			}
+
+		} else if platform == "linux" {
+			newProductsToAdd = map[string]string{
+				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
+				"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
+				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
+				"R2022a": "Wireless_Testbench Simulink_Real-Time Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
+				"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
+				"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
+				"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
+				"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
+				"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
+				"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
+				"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
+				"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Network_Toolbox Vehicle_Dynamics_Blockset",
+				"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
+			}
+
+		} else if platform == "macOSx64" {
+			newProductsToAdd = map[string]string{
+				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
+				"R2023a": "MATLAB_Test",
+				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
+				"R2022a": "Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
+				"R2021b": "RF_PCB_Toolbox",
+				"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
+				"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox",
+				"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
+				"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
+				"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
+				"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
+				"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset",
+				"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_System_Toolbox Automated_Driving_System_Toolbox Bioinformatics_Toolbox Computer_Vision_System_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Report_Generator Simulink_Requirements Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Trading_Toolbox Wavelet_Toolbox",
+			}
+
+		} else if platform == "macOSARM" {
+			newProductsToAdd = map[string]string{
+				"R2023b": "5G_Toolbox AUTOSAR_Blockset Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_Toolbox Automated_Driving_Toolbox Bioinformatics_Toolbox Bluetooth_Toolbox Communications_Toolbox Computer_Vision_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DDS_Blockset DSP_HDL_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Deep_Learning_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Industrial_Communication_Toolbox Instrument_Control_Toolbox LTE_Toolbox Lidar_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Report_Generator MATLAB_Test Mapping_Toolbox Medical_Imaging_Toolbox Mixed-Signal_Blockset Model_Predictive_Control_Toolbox Motor_Control_Blockset Navigation_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Powertrain_Blockset Predictive_Maintenance_Toolbox RF_Blockset RF_PCB_Toolbox RF_Toolbox ROS_Toolbox Radar_Toolbox Reinforcement_Learning_Toolbox Requirements_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Satellite_Communications_Toolbox Sensor_Fusion_and_Tracking_Toolbox SerDes_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Battery Simscape_Driveline Simscape_Electrical Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Compiler Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Fault_Analyzer Simulink_PLC_Coder Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Composer System_Identification_Toolbox Text_Analytics_Toolbox UAV_Toolbox Vehicle_Dynamics_Blockset WLAN_Toolbox Wavelet_Toolbox Wireless_HDL_Toolbox",
+			}
+		}
+
+		// The actual for loop that goes through the list above.
+		for releaseLoop, product := range newProductsToAdd {
+			if release >= releaseLoop {
+				allProducts = append(allProducts, strings.Fields(product)...)
+			}
+		}
+
+		// old products to add
+		if platform == "windows" {
+			oldProductsToAdd = map[string]string{
+				"R2021b": "Simulink_Requirements OPC_Toolbox",
+				"R2020b": "Trading_Toolbox",
+				"R2019b": "LTE_HDL_Toolbox",
+				"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
+				"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
+			}
+
+		} else if platform == "linux" {
+			oldProductsToAdd = map[string]string{
+				"R2021b": "Simulink_Requirements",
+				"R2020b": "Trading_Toolbox",
+				"R2019b": "LTE_HDL_Toolbox",
+				"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
+				"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
+			}
+
+		} else if platform == "macOSx64" {
+			oldProductsToAdd = map[string]string{
+				"R2021b": "Simulink_Requirements MATLAB_Parallel_Server",
+				"R2020b": "Trading_Toolbox",
+				"R2019b": "LTE_HDL_Toolbox",
+				"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
+				"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
+			}
+		}
+
+		// The actual for loop that goes through the list above. Note that it uses the same logic, just <= instead of >=.
+		for releaseLoop, product := range oldProductsToAdd {
+			if release <= releaseLoop {
+				allProducts = append(allProducts, strings.Fields(product)...)
+			}
+		}
+
+		// Determine the products we'll actually be using with MPM.
 		if productsInput == "" {
-
-			// new products to add
-			if platform == "windows" {
-				newProductsToAdd = map[string]string{
-					"R2024a": "", // No new products were added in R2024a.
-					"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
-					"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
-					"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
-					"R2022a": "Wireless_Testbench Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
-					"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
-					"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
-					"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
-					"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
-					"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
-					"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
-					"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
-					"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset",
-					"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Data_Acquisition_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Model-Based_Calibration_Toolbox OPC_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_PLC_Coder Simulink_Real-Time Simulink_Report_Generator Simulink_Test Spreadsheet_Link Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vehicle_Network_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
-				}
-
-			} else if platform == "linux" {
-				newProductsToAdd = map[string]string{
-					"R2024a": "", // No new products were added in R2024a.
-					"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
-					"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
-					"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
-					"R2022a": "Wireless_Testbench Simulink_Real-Time Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
-					"R2021b": "Signal_Integrity_Toolbox RF_PCB_Toolbox",
-					"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
-					"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox Deep_Learning_HDL_Toolbox",
-					"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
-					"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
-					"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset MATLAB_Parallel_Server Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
-					"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
-					"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Network_Toolbox Vehicle_Dynamics_Blockset",
-					"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Vision_HDL_Toolbox Wavelet_Toolbox",
-				}
-
-			} else if platform == "macOSx64" {
-				newProductsToAdd = map[string]string{
-					"R2024a": "", // No new products were added in R2024a.
-					"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
-					"R2023a": "MATLAB_Test",
-					"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
-					"R2022a": "Bluetooth_Toolbox DSP_HDL_Toolbox Requirements_Toolbox Industrial_Communication_Toolbox",
-					"R2021b": "RF_PCB_Toolbox",
-					"R2021a": "Satellite_Communications_Toolbox DDS_Blockset",
-					"R2020b": "UAV_Toolbox Radar_Toolbox Lidar_Toolbox",
-					"R2020a": "Simulink_Compiler Motor_Control_Blockset MATLAB_Web_App_Server Wireless_HDL_Toolbox",
-					"R2019b": "ROS_Toolbox Simulink_PLC_Coder Navigation_Toolbox",
-					"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
-					"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
-					"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset",
-					"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_System_Toolbox Automated_Driving_System_Toolbox Bioinformatics_Toolbox Computer_Vision_System_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Report_Generator Simulink_Requirements Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Trading_Toolbox Wavelet_Toolbox",
-				}
-
-			} else if platform == "macOSARM" {
-				newProductsToAdd = map[string]string{
-					"R2024a": "", // No new products were added in R2024a.
-					"R2023b": "5G_Toolbox AUTOSAR_Blockset Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_Toolbox Automated_Driving_Toolbox Bioinformatics_Toolbox Bluetooth_Toolbox Communications_Toolbox Computer_Vision_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DDS_Blockset DSP_HDL_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Deep_Learning_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Industrial_Communication_Toolbox Instrument_Control_Toolbox LTE_Toolbox Lidar_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Report_Generator MATLAB_Test Mapping_Toolbox Medical_Imaging_Toolbox Mixed-Signal_Blockset Model_Predictive_Control_Toolbox Motor_Control_Blockset Navigation_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Powertrain_Blockset Predictive_Maintenance_Toolbox RF_Blockset RF_PCB_Toolbox RF_Toolbox ROS_Toolbox Radar_Toolbox Reinforcement_Learning_Toolbox Requirements_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Satellite_Communications_Toolbox Sensor_Fusion_and_Tracking_Toolbox SerDes_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Battery Simscape_Driveline Simscape_Electrical Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Compiler Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Fault_Analyzer Simulink_PLC_Coder Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Composer System_Identification_Toolbox Text_Analytics_Toolbox UAV_Toolbox Vehicle_Dynamics_Blockset WLAN_Toolbox Wavelet_Toolbox Wireless_HDL_Toolbox",
-				}
-			}
-
-			// The actual for loop that goes through the list above.
-			for releaseLoop, product := range newProductsToAdd {
-				if release >= releaseLoop {
-					products = append(products, strings.Fields(product)...)
-				}
-			}
-
-			// old products to add
-			if platform == "windows" {
-				oldProductsToAdd = map[string]string{
-					"R2021b": "Simulink_Requirements",
-					"R2020b": "Trading_Toolbox",
-					"R2019b": "LTE_HDL_Toolbox",
-					"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
-					"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
-				}
-
-			} else if platform == "linux" {
-				oldProductsToAdd = map[string]string{
-					"R2021b": "Simulink_Requirements",
-					"R2020b": "Trading_Toolbox",
-					"R2019b": "LTE_HDL_Toolbox",
-					"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
-					"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
-				}
-
-			} else if platform == "macOSx64" {
-				oldProductsToAdd = map[string]string{
-					"R2021b": "Simulink_Requirements MATLAB_Parallel_Server",
-					"R2020b": "Trading_Toolbox",
-					"R2019b": "LTE_HDL_Toolbox",
-					"R2018b": "Audio_System_Toolbox Automated_Driving_System_Toolbox Computer_Vision_System_Toolbox MATLAB_Distributed_Computing_Server",
-					"R2018a": "Communications_System_Toolbox LTE_System_Toolbox Neural_Network_Toolbox Simscape_Electronics Simscape_Power_Systems WLAN_System_Toolbox",
-				}
-
-			} else if platform == "macOSARM" {
-				// No oldProductsToAdd for macOSARM
-			}
-
-			// The actual for loop that goes through the list above. Note that it uses the same logic, just <= instead of >=.
-			for releaseLoop, product := range oldProductsToAdd {
-				if release <= releaseLoop {
-					products = append(products, strings.Fields(product)...)
-				}
-			}
+			products = allProducts
 		} else if productsInput == "parallel_products" {
 
 			products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
 
 		} else {
 			products = strings.Fields(productsInput)
+			if !checkProductsExist(products, allProducts) {
+				fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
+				continue
+			}
 		}
 		break
 	}
@@ -489,7 +492,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(redText("Error executing MPM. See the error above for more information. ", err))
+		fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err))
 	}
 
 	// Create the licenses directory and the file specified, if you specified one.
@@ -562,10 +565,9 @@ func downloadFile(url string, filePath string) error {
 }
 
 // Make sure the products you've specified exist.
-func checkProductsExist(inputProducts []string, availableProducts string) bool {
-	availableProductsList := strings.Fields(availableProducts)
-	productSet := make(map[string]struct{}, len(availableProductsList))
-	for _, product := range availableProductsList {
+func checkProductsExist(inputProducts []string, availableProducts []string) bool {
+	productSet := make(map[string]struct{}, len(availableProducts))
+	for _, product := range availableProducts {
 		productSet[product] = struct{}{}
 	}
 
