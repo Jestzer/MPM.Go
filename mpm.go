@@ -87,9 +87,9 @@ func main() {
 
 	// Figure out where you want actual MPM to go.
 	for {
-		fmt.Print("Enter the path to the directory where you would like MPM to download to. " +
+		fmt.Print("Enter the path to where you would like MPM to download to. " +
 			"Press Enter to use \"" + defaultTMP + "\"\n> ")
-		mpmDownloadPath, err = rl.Readline()
+		mpmDownloadPath, err = readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -107,7 +107,7 @@ func main() {
 			_, err := os.Stat(mpmDownloadPath)
 			if os.IsNotExist(err) {
 				fmt.Printf("The directory \"%s\" does not exist. Do you want to create it? (y/n)\n> ", mpmDownloadPath)
-				createDir, err := rl.Readline()
+				createDir, err := readUserInput(rl)
 				if err != nil {
 					if err.Error() == "Interrupt" {
 						fmt.Println(redText("Exiting from user input."))
@@ -117,15 +117,11 @@ func main() {
 					}
 					return
 				}
+
 				createDir = strings.TrimSpace(createDir)
+				createDir = strings.ToLower(createDir)
 
-				// Don't ask me why I've only put this here so far.
-				// I'll probably put it in other places that don't ask for file names/paths.
-				if createDir == "exit" || createDir == "Exit" || createDir == "quit" || createDir == "Quit" {
-					os.Exit(0)
-				}
-
-				if createDir == "y" || createDir == "Y" {
+				if createDir == "y" || createDir == "yes" || createDir == "t" || createDir == "true" {
 					err := os.MkdirAll(mpmDownloadPath, 0755)
 					if err != nil {
 						fmt.Println(redText("Failed to create the directory: ", err, "Please select a different directory."))
@@ -133,7 +129,7 @@ func main() {
 					}
 					fmt.Println("Directory created successfully.")
 				} else {
-					fmt.Println("Directory creation skipped. Please select a different directory.")
+					fmt.Println(redText("Directory creation skipped. Please select a different directory."))
 					continue
 				}
 			} else if err != nil {
@@ -151,7 +147,7 @@ func main() {
 		for {
 			if err == nil {
 				fmt.Println("MPM already exists in this directory. Would you like to overwrite it?")
-				overwriteMPM, err := rl.Readline()
+				overwriteMPM, err := readUserInput(rl)
 				if err != nil {
 					if err.Error() == "Interrupt" {
 						fmt.Println(redText("Exiting from user input."))
@@ -162,13 +158,15 @@ func main() {
 					return
 				}
 
-				overwriteMPM = cleanInput(overwriteMPM)
-				if overwriteMPM == "n" || overwriteMPM == "N" {
+				overwriteMPM = strings.TrimSpace(strings.ToLower(overwriteMPM))
+
+				if overwriteMPM == "n" || overwriteMPM == "no" || overwriteMPM == "f" || overwriteMPM == "false" {
 					fmt.Println("Skipping download.")
 					mpmDownloadNeeded = false
 					break
 				}
-				if overwriteMPM == "y" || overwriteMPM == "Y" {
+
+				if overwriteMPM == "y" || overwriteMPM == "yes" || overwriteMPM == "t" || overwriteMPM == "true" {
 					break
 				} else {
 					fmt.Println(redText("Invalid choice. Please enter either 'y' or 'n'."))
@@ -217,7 +215,7 @@ func main() {
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
 		fmt.Print("\n> ")
-		release, err = rl.Readline()
+		release, err = readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -254,7 +252,7 @@ func main() {
 		// Product selection.
 		fmt.Print("Enter the products you would like to install. Use the same syntax as MPM to specify products. " +
 			"Press Enter to install all products.\n> ")
-		productsInput, err := rl.Readline()
+		productsInput, err := readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -384,7 +382,7 @@ func main() {
 		} else {
 			products = strings.Fields(productsInput)
 			if !checkProductsExist(products, allProducts) {
-				fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
+				fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Different products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
 				continue
 			}
 		}
@@ -406,8 +404,7 @@ func main() {
 		fmt.Print("Enter the full path where you would like to install these products. "+
 			"Press Enter to install to default path: \"", defaultInstallationPath, "\"\n> ")
 
-		var installPathInput string // For whatever reason, if I try to use installPath with ReadLine, it erases its value, so I'm using installPathInput instead.
-		installPathInput, err := rl.Readline()
+		installPath, err = readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -418,24 +415,43 @@ func main() {
 			return
 		}
 
-		installPath = installPathInput
 		installPath = strings.TrimSpace(installPath)
 
 		if installPath == "" {
 			installPath = defaultInstallationPath
+		} else {
+			if _, err := os.Stat(installPath); os.IsNotExist(err) {
+
+				// If the folder does not exist, try to create it.
+				if _, err := os.Stat(installPath); os.IsNotExist(err) {
+					if err := os.MkdirAll(installPath, 0755); err != nil {
+						fmt.Println(redText("Error creating directory: ", err, " Please pick a different installation path."))
+						continue
+					} else {
+						fullPath, err := filepath.Abs(installPath)
+						if err != nil {
+							fmt.Println(redText("Error reading newly-created directory's full path: ", err, " Please pick a different installation path."))
+							continue
+						} else {
+							fmt.Println("Directory successfully created:", fullPath)
+						}
+					}
+				}
+			} else if err != nil {
+				fullPath, _ := filepath.Abs(installPath)
+				fmt.Println(redText("Error selecting directory: ", fullPath, " Please pick a different installation path."))
+				continue
+			}
 		}
 		break
 	}
-
-	// Add some code to check the following:
-	// - If you have permissions to read/write there
 
 	// Optional license file selection.
 	for {
 		fmt.Print("If you have a license file you'd like to include in your installation, " +
 			"please provide the full path to the existing license file.\n> ")
 
-		licensePath, err = rl.Readline()
+		licensePath, err = readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
 				fmt.Println(redText("Exiting from user input."))
@@ -502,7 +518,7 @@ func main() {
 		licensesInstallationDirectory := filepath.Join(installPath, "licenses")
 		err := os.Mkdir(licensesInstallationDirectory, 0755)
 		if err != nil {
-			fmt.Println(redText("Error creating \"licenses\" directory: ", err))
+			fmt.Println(redText("Error creating \"licenses\" directory: ", err, " You will need to manually place your license file in your installation."))
 		}
 
 		// Copy the license file to the "licenses" directory.
@@ -511,35 +527,21 @@ func main() {
 
 		src, err := os.Open(licensePath)
 		if err != nil {
-			fmt.Println(redText("Error opening license file: ", err))
+			fmt.Println(redText("Error opening license file: ", err, " You will need to manually place your license file in your installation."))
 		}
 		defer src.Close()
 
 		dest, err := os.Create(destPath)
 		if err != nil {
-			fmt.Println(redText("Error creating destination file: ", err))
+			fmt.Println(redText("Error creating destination file: ", err, " You will need to manually place your license file in your installation."))
 		}
 		defer dest.Close()
 
 		_, err = io.Copy(dest, src)
 		if err != nil {
-			fmt.Println(redText("Error copying license file: ", err))
+			fmt.Println(redText("Error copying license file: ", err, " You will need to manually place your license file in your installation."))
 		}
 	}
-	// Next steps:
-	// - May need to chmod mpm on Linux. Should test this soon.
-	// - Ask which products they'd like to install.
-	// - Painstakingly find out all products can be installed for each release on Windows and macOS.
-	// - Figure out the most efficient way to do the above, including Linux.
-	// - Ask for an installation path.
-	// - Ask if you want to use a license file.
-	// - Kick off installation.
-	// - Place the license file if you asked to use one.
-}
-
-// Clean input function.
-func cleanInput(input string) string {
-	return strings.TrimSpace(input)
 }
 
 // Function to download a file from the given URL and save it to the specified path.
@@ -577,4 +579,21 @@ func checkProductsExist(inputProducts []string, availableProducts []string) bool
 		}
 	}
 	return true
+}
+
+// Reading user input in a separate function allows me to accept input such as "quit" or "exit" without needing to repeat said code.
+func readUserInput(rl *readline.Instance) (string, error) {
+	redBackground := color.New(color.BgRed).SprintFunc()
+	line, err := rl.Readline()
+	if err != nil {
+		return "", err
+	}
+
+	line = strings.TrimSpace(strings.ToLower(line))
+
+	if line == "exit" || line == "quit" {
+		fmt.Println(redBackground("\nExiting from user input..."))
+		os.Exit(0)
+	}
+	return line, nil
 }
