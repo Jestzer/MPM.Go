@@ -37,10 +37,14 @@ func main() {
 	mpmDownloadNeeded = true
 	platform := runtime.GOOS
 	redText := color.New(color.FgRed).SprintFunc()
-	redBackground := color.New(color.BgRed).SprintFunc()
 
 	// Reader to make using the command line not suck.
-	rl, err := readline.New("> ")
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt: "> ",
+		AutoComplete: readline.NewPrefixCompleter(
+			readline.PcItemDynamic(listFiles),
+		),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +61,7 @@ func main() {
 		<-signalChan
 
 		// Handle the signal (in this case, simply exit the program.)
-		fmt.Println(redBackground("\nExiting from user input..."))
+		fmt.Println(redText("\nExiting from user input."))
 		os.Exit(0)
 	}()
 
@@ -473,8 +477,8 @@ func main() {
 			if err != nil {
 				fmt.Println(redText("Error: ", err))
 				continue
-			} else if !strings.HasSuffix(licensePath, ".dat") && !strings.HasSuffix(licensePath, ".lic") {
-				fmt.Println(redText("Invalid file extension. Please provide a file with .dat or .lic extension."))
+			} else if !strings.HasSuffix(licensePath, ".dat") && !strings.HasSuffix(licensePath, ".lic") && !strings.HasSuffix(licensePath, ".xml") {
+				fmt.Println(redText("Invalid file extension. Please provide a file with a .dat, .lic, or .xml file extension."))
 				continue
 			} else {
 				licenseFileUsed = true
@@ -583,7 +587,7 @@ func checkProductsExist(inputProducts []string, availableProducts []string) bool
 
 // Reading user input in a separate function allows me to accept input such as "quit" or "exit" without needing to repeat said code.
 func readUserInput(rl *readline.Instance) (string, error) {
-	redBackground := color.New(color.BgRed).SprintFunc()
+	redText := color.New(color.FgRed).SprintFunc()
 	line, err := rl.Readline()
 	if err != nil {
 		return "", err
@@ -592,8 +596,44 @@ func readUserInput(rl *readline.Instance) (string, error) {
 	line = strings.TrimSpace(strings.ToLower(line))
 
 	if line == "exit" || line == "quit" {
-		fmt.Println(redBackground("\nExiting from user input..."))
+		fmt.Println(redText("\nExiting from user input."))
 		os.Exit(0)
 	}
 	return line, nil
+}
+
+// List and auto-complete files and folders with tabbing.
+func listFiles(line string) []string {
+	dir, file := filepath.Split(line)
+	if dir == "" {
+		dir = "."
+	}
+
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+
+	var suggestions []string
+	for _, f := range files {
+		name := f.Name()
+		if f.IsDir() {
+			name += string(os.PathSeparator)
+		}
+		if strings.HasPrefix(name, file) {
+			suggestions = append(suggestions, filepath.Join(dir, name))
+		}
+	}
+
+	// If there's exactly one suggestion and it's a directory, ensure it ends with a / or \.
+	if len(suggestions) == 1 {
+		suggestion := suggestions[0]
+		info, err := os.Stat(suggestion)
+		if err == nil && info.IsDir() {
+			suggestions[0] = suggestion + string(os.PathSeparator)
+		}
+		return suggestions
+	}
+
+	return suggestions
 }
