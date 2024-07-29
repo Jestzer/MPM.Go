@@ -1,3 +1,5 @@
+github.com/Jestzer/readlineJestzer v0.0.0-20240729202214-db17ad738cd4 h1:Borg/J/3lyRg8lfga9+WAW6FZmdYySE+X1L8sAyn2WQ=
+github.com/Jestzer/readlineJestzer v0.0.0-20240729202214-db17ad738cd4/go.mod h1:6vw9/tL9WldvygYLH0SB8lf7kk3DrkJkL0/D64d6Kck=
 github.com/chzyer/logex v1.2.1/go.mod h1:JLbx6lG2kDbNRFnfkgvh4eRJRPX1QCoOIWomwysCBrQ=
 github.com/chzyer/readline v1.5.1 h1:upd/6fQk4src78LMRzh5vItIt361/o4uq553V8B5sGI=
 github.com/chzyer/readline v1.5.1/go.mod h1:Eh+b79XXUwfKfcPLepksvw2tcLE/Ct21YObkaSkeBlk=
