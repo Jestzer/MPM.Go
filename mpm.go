@@ -12,7 +12,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/chzyer/readline"
+	readline "github.com/Jestzer/readlineJestzer"
 	"github.com/fatih/color"
 )
 
@@ -623,16 +623,6 @@ func listFiles(line string) []string {
 		if strings.HasPrefix(name, file) {
 			suggestions = append(suggestions, filepath.Join(dir, name))
 		}
-	}
-
-	// If there's exactly one suggestion and it's a directory, ensure it ends with a / or \.
-	if len(suggestions) == 1 {
-		suggestion := suggestions[0]
-		info, err := os.Stat(suggestion)
-		if err == nil && info.IsDir() {
-			suggestions[0] = suggestion + string(os.PathSeparator)
-		}
-		return suggestions
 	}
 
 	return suggestions
