@@ -23,7 +23,6 @@ func main() {
 		installPath             string
 		mpmDownloadPath         string
 		mpmURL                  string
-		mpmDownloadNeeded       bool
 		products                []string
 		release                 string
 		validReleases           []string
@@ -35,7 +34,8 @@ func main() {
 		oldProductsToAdd        map[string]string
 		allProducts             []string
 	)
-	mpmDownloadNeeded = true
+	var mpmDownloadNeeded bool = true
+	var mpmTypeIsMismatched bool = false
 	platform := runtime.GOOS
 	redText := color.New(color.FgRed).SprintFunc()
 
@@ -78,7 +78,7 @@ func main() {
 
 			// Ask macOSARM users which installer they'd like to use.
 			for {
-				fmt.Print("Would you like to install an Intel or ARM version of your products? Type in \"intel\", \"arm\" or \"idk\" if you're unsure.")
+				fmt.Println("Would you like to install an Intel or ARM version of your products? Type in \"intel\", \"arm\" or \"idk\" if you're unsure.")
 				manualOSspecified, err := readUserInput(rl)
 				if err != nil {
 					if err.Error() == "Interrupt" {
@@ -94,10 +94,12 @@ func main() {
 
 				if manualOSspecified == "intel" || manualOSspecified == "\"intel\"" || manualOSspecified == "idk" || manualOSspecified == "\"idk\"" {
 					mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
+					platform = "macOSx64"
 				} else if manualOSspecified == "arm" || manualOSspecified == "\"arm\"" {
 					mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
+					platform = "macOSARM"
 				} else {
-					fmt.Println(redText("Invalid selection. Enter either yes, no, or idk."))
+					fmt.Println(redText("Invalid selection. Enter either intel, arm, or idk."))
 					continue
 				}
 				break
@@ -112,7 +114,7 @@ func main() {
 	default:
 		defaultTMP = "unknown"
 		fmt.Println(redText("Your operating system is unrecognized. Exiting."))
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	// Figure out where you want actual MPM to go.
@@ -176,7 +178,36 @@ func main() {
 		_, err := os.Stat(fileName)
 		for {
 			if err == nil {
-				fmt.Println("MPM already exists in this directory. Would you like to overwrite it?")
+				if platform == "macOSARM" || platform == "macOSx64" {
+					fmt.Print("An existing copy of MPM has been detected. Checking which version you downloaded, please wait.\n\n") // Want extra space and suppress Go warnings.
+					cmd := exec.Command("lipo", "-info", fileName)
+					output, err := cmd.Output()
+					if err != nil {
+						fmt.Println(redText("Error checking MPM's file architecture: ", err, ". Please move or delete your existing copy of MPM from the selected directory before proceeding. "+
+							"You likely either have a corrputed copy of MPM or it is for Windows or Linux."))
+						os.Exit(1)
+					}
+					archInfo := string(output)
+
+					// Warn users if their copy of MPM doesn't match their selected CPU type.
+					if strings.Contains(archInfo, "arm64") {
+						if platform == "macOSx64" {
+							mpmTypeIsMismatched = true
+						}
+					} else if strings.Contains(archInfo, "x86_64") {
+						if platform == "macOSARM" {
+							mpmTypeIsMismatched = true
+						}
+					} else {
+						fmt.Println(redText("Error checking MPM's file architecture. Please move or delete your existing copy of MPM from the selected directory before proceeding."))
+						os.Exit(1)
+					}
+				}
+				if mpmTypeIsMismatched {
+					fmt.Println("MPM already exists in this directory and is for a different CPU architecture than you selected. Would you like to overwrite it?")
+				} else {
+					fmt.Println("MPM already exists in this directory. Would you like to overwrite it?")
+				}
 				overwriteMPM, err := readUserInput(rl)
 				if err != nil {
 					if err.Error() == "Interrupt" {
@@ -191,9 +222,15 @@ func main() {
 				overwriteMPM = strings.TrimSpace(strings.ToLower(overwriteMPM))
 
 				if overwriteMPM == "n" || overwriteMPM == "no" || overwriteMPM == "f" || overwriteMPM == "false" {
-					fmt.Println("Skipping download.")
-					mpmDownloadNeeded = false
-					break
+					if mpmTypeIsMismatched { // Make up your mind. Do you want to use ARM or Intel?
+						fmt.Println(redText("You can't use a version of MPM that doesn't match the CPU architecture you selected. Please either select a different directory to download " +
+							"MPM or move your existing copy elsewhere. Exiting the program now."))
+						os.Exit(1)
+					} else {
+						fmt.Println("Skipping download.")
+						mpmDownloadNeeded = false
+						break
+					}
 				}
 
 				if overwriteMPM == "y" || overwriteMPM == "yes" || overwriteMPM == "t" || overwriteMPM == "true" {
@@ -208,7 +245,7 @@ func main() {
 
 		// Download MPM.
 		if mpmDownloadNeeded {
-			fmt.Println("Beginning download of MPM. Please wait.")
+			fmt.Println("Downloading MPM. Please wait.")
 			err = downloadFile(mpmURL, fileName)
 			if err != nil {
 				fmt.Println(redText("Failed to download MPM. ", err))
@@ -217,8 +254,8 @@ func main() {
 			fmt.Println("MPM downloaded successfully.")
 		}
 
-		// Make sure you can actually execute MPM on Linux.
-		if runtime.GOOS == "linux" {
+		// Make sure you can actually execute MPM on Linux and macOS.
+		if platform != "windows" {
 			command := "chmod +x " + mpmDownloadPath + "/mpm"
 
 			// Execute the command
@@ -282,7 +319,11 @@ func main() {
 			break
 		}
 
-		fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024a."))
+		if platform == "macOSARM" {
+			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2024a."))
+		} else {
+			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024a."))
+		}
 	}
 
 	for {
@@ -428,7 +469,7 @@ func main() {
 
 	// Set the default installation path based on your OS.
 	if platform == "macOSx64" || platform == "macOSARM" {
-		defaultInstallationPath = "/Applications/MATLAB_" + release
+		defaultInstallationPath = "/Applications/MATLAB_" + release + ".app"
 	}
 	if platform == "windows" {
 		defaultInstallationPath = "C:\\Program Files\\MATLAB\\" + release
@@ -519,6 +560,8 @@ func main() {
 			}
 		}
 	}
+
+	fmt.Println("Loading, please wait!")
 
 	if runtime.GOOS == "darwin" {
 		mpmFullPath = mpmDownloadPath + "/mpm"
@@ -625,10 +668,12 @@ func readUserInput(rl *readline.Instance) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	line = strings.TrimSpace(line)
 
-	line = strings.TrimSpace(strings.ToLower(line))
+	// We want to separate the lowercase version for just exiting and quiting, since it'll otherwise affect product name input.
+	lineLower := strings.ToLower(line)
 
-	if line == "exit" || line == "quit" {
+	if lineLower == "exit" || lineLower == "quit" {
 		fmt.Println(redText("\nExiting from user input."))
 		os.Exit(0)
 	}
