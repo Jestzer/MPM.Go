@@ -16,6 +16,11 @@ import (
 	"github.com/fatih/color"
 )
 
+// Used to read the output of MPM.
+type customWriter struct {
+	writer io.Writer
+}
+
 func main() {
 
 	var (
@@ -561,7 +566,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("Loading, please wait!")
+	fmt.Println("Loading, please wait.")
 
 	if runtime.GOOS == "darwin" {
 		mpmFullPath = mpmDownloadPath + "/mpm"
@@ -584,11 +589,14 @@ func main() {
 	cmdArgs = append(cmdArgs, products...)
 
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+
+	// Use customWriter to intercept and process MPM's output.
+	cmd.Stdout = &customWriter{writer: os.Stdout}
+	cmd.Stderr = &customWriter{writer: os.Stderr}
+	err = cmd.Run() // Run it already geeeeeeeez
 	if err != nil {
-		fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err))
+		fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err, "."))
+		os.Exit(1)
 	}
 
 	// Create the licenses directory and the file specified, if you specified one.
@@ -621,6 +629,22 @@ func main() {
 		if err != nil {
 			fmt.Println(redText("Error copying license file: ", err, " You will need to manually place your license file in your installation."))
 		}
+	}
+
+	// For the double-clickers.
+	for {
+		fmt.Println("Installation finished! Press the Enter/Return key to close this window.")
+
+		_, err = readUserInput(rl)
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Println(redText("Error reading line: ", err))
+				continue
+			}
+		}
+		os.Exit(0)
 	}
 }
 
@@ -704,4 +728,19 @@ func listFiles(line string) []string {
 	}
 
 	return suggestions
+}
+
+// Function used to write a more meaningful installation message. Needs to be in here and not the main function.
+func (cw *customWriter) Write(p []byte) (n int, err error) {
+	output := string(p)
+	n, err = cw.writer.Write(p) // Write MPM's original message first.
+	if err != nil {
+		return n, err
+	}
+	if strings.Contains(output, "Starting install") {
+		fmt.Fprintln(cw.writer, "Installation has begun. Please wait while it finishes. There is no progress indicator.")
+	} else if strings.Contains(output, "Installition complete") {
+		// This line is redundant since I'm already saying and I like how I say it better!
+	}
+	return n, nil
 }
