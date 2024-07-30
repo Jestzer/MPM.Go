@@ -26,6 +26,7 @@ func main() {
 		mpmDownloadNeeded       bool
 		products                []string
 		release                 string
+		validReleases           []string
 		defaultInstallationPath string
 		licenseFileUsed         bool
 		licensePath             string
@@ -71,11 +72,36 @@ func main() {
 		defaultTMP = "/tmp"
 		switch runtime.GOARCH {
 		case "amd64":
-			mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
 			platform = "macOSx64"
 		case "arm64":
-			mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
 			platform = "macOSARM"
+
+			// Ask macOSARM users which installer they'd like to use.
+			for {
+				fmt.Print("Would you like to install an Intel or ARM version of your products? Type in \"intel\", \"arm\" or \"idk\" if you're unsure.")
+				manualOSspecified, err := readUserInput(rl)
+				if err != nil {
+					if err.Error() == "Interrupt" {
+						fmt.Println(redText("Exiting from user input."))
+					} else {
+						fmt.Println(redText("Error reading line: ", err))
+						continue
+					}
+					return
+				}
+
+				manualOSspecified = strings.ToLower(strings.TrimSpace(manualOSspecified))
+
+				if manualOSspecified == "intel" || manualOSspecified == "\"intel\"" || manualOSspecified == "idk" || manualOSspecified == "\"idk\"" {
+					mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
+				} else if manualOSspecified == "arm" || manualOSspecified == "\"arm\"" {
+					mpmURL = "https://www.mathworks.com/mpm/maca64/mpm"
+				} else {
+					fmt.Println(redText("Invalid selection. Enter either yes, no, or idk."))
+					continue
+				}
+				break
+			}
 		}
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
@@ -210,10 +236,17 @@ func main() {
 	}
 
 	// Ask the user which release they'd like to install.
-	validReleases := []string{
-		"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
-		"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a",
+	if platform == "macOSARM" {
+		validReleases = []string{
+			"R2023b", "R2024a",
+		}
+	} else {
+		validReleases = []string{
+			"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
+			"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a",
+		}
 	}
+
 	defaultRelease := "R2024a"
 
 	for {
@@ -269,7 +302,7 @@ func main() {
 
 		productsInput = strings.TrimSpace(productsInput)
 
-		// I will begin assembling the full product list based on your release and platform.
+		// Begin assembling the full product list based on your release and platform.
 		// This is to ensure the products you're specifying exist or that a full list is assembled if you decide to install everything.
 		// Notes:
 		// - No oldProductsToAdd is needed for macOSARM at the moment.
@@ -333,14 +366,14 @@ func main() {
 			}
 		}
 
-		// The actual for loop that goes through the list above.
+		// Use a loop to go through the list above to add the appropriate products.
 		for releaseLoop, product := range newProductsToAdd {
 			if release >= releaseLoop {
 				allProducts = append(allProducts, strings.Fields(product)...)
 			}
 		}
 
-		// old products to add
+		// Old products to add.
 		if platform == "windows" {
 			oldProductsToAdd = map[string]string{
 				"R2021b": "Simulink_Requirements OPC_Toolbox",
@@ -369,7 +402,7 @@ func main() {
 			}
 		}
 
-		// The actual for loop that goes through the list above. Note that it uses the same logic, just <= instead of >=.
+		// The actual for loop that goes through the list above. Note that it uses the same logic as newProducts, it just uses <= instead of >=.
 		for releaseLoop, product := range oldProductsToAdd {
 			if release <= releaseLoop {
 				allProducts = append(allProducts, strings.Fields(product)...)
