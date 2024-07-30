@@ -4,3 +4,4 @@ Windows
 *.exe
 mpm
 .DS_Store
+mpm-go*
