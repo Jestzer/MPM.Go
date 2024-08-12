@@ -39,6 +39,16 @@ func main() {
 		oldProductsToAdd        map[string]string
 		allProducts             []string
 	)
+
+	// Print version number, if requested.
+	args := os.Args[1:]
+	for _, arg := range args {
+		if arg == "-version" {
+			fmt.Println("Version number: 1.0")
+			os.Exit(0)
+		}
+	}
+
 	var mpmDownloadNeeded bool = true
 	var mpmTypeIsMismatched bool = false
 	platform := runtime.GOOS
