@@ -78,6 +78,7 @@ func main() {
 		switch runtime.GOARCH {
 		case "amd64":
 			platform = "macOSx64"
+			mpmURL = "https://www.mathworks.com/mpm/maci64/mpm"
 		case "arm64":
 			platform = "macOSARM"
 
