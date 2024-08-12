@@ -403,7 +403,7 @@ func main() {
 				"R2019a": "System_Composer SoC_Blockset SerDes_Toolbox Reinforcement_Learning_Toolbox Audio_Toolbox Mixed-Signal_Blockset AUTOSAR_Blockset Polyspace_Bug_Finder_Server Polyspace_Code_Prover_Server Automated_Driving_Toolbox Computer_Vision_Toolbox",
 				"R2018b": "Communications_Toolbox Simscape_Electrical Sensor_Fusion_and_Tracking_Toolbox Deep_Learning_Toolbox 5G_Toolbox WLAN_Toolbox LTE_Toolbox",
 				"R2018a": "Predictive_Maintenance_Toolbox Vehicle_Dynamics_Blockset",
-				"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_System_Toolbox Automated_Driving_System_Toolbox Bioinformatics_Toolbox Computer_Vision_System_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Report_Generator Simulink_Requirements Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Trading_Toolbox Wavelet_Toolbox",
+				"R2017b": "Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Bioinformatics_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Instrument_Control_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Production_Server MATLAB_Report_Generator Mapping_Toolbox Model_Predictive_Control_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Polyspace_Bug_Finder Polyspace_Code_Prover Powertrain_Blockset RF_Blockset RF_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Driveline Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Identification_Toolbox Text_Analytics_Toolbox Wavelet_Toolbox",
 			}
 
 		} else if platform == "macOSARM" {
@@ -593,9 +593,15 @@ func main() {
 	// Use customWriter to intercept and process MPM's output.
 	cmd.Stdout = &customWriter{writer: os.Stdout}
 	cmd.Stderr = &customWriter{writer: os.Stderr}
-	err = cmd.Run() // Run it already geeeeeeeez
+	err = cmd.Run() // Run it already geeeeeeeez.
+
 	if err != nil {
-		fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err, "."))
+		errString := err.Error()
+		if strings.Contains(errString, "mpm: no such file or directory") || strings.Contains(errString, "mpm.exe: no such file or directory") {
+			fmt.Println(redText("MPM was either moved, renamed, deleted, or you've lost permissions to access it. Exiting."))
+		} else {
+			fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err, "."))
+		}
 		os.Exit(1)
 	}
 
@@ -606,7 +612,7 @@ func main() {
 		licensesInstallationDirectory := filepath.Join(installPath, "licenses")
 		err := os.Mkdir(licensesInstallationDirectory, 0755)
 		if err != nil {
-			fmt.Println(redText("Error creating \"licenses\" directory: ", err, " You will need to manually place your license file in your installation."))
+			fmt.Println(redText("Error creating \"licenses\" directory: ", err, ". You will need to manually place your license file in your installation."))
 		}
 
 		// Copy the license file to the "licenses" directory.
@@ -615,19 +621,19 @@ func main() {
 
 		src, err := os.Open(licensePath)
 		if err != nil {
-			fmt.Println(redText("Error opening license file: ", err, " You will need to manually place your license file in your installation."))
+			fmt.Println(redText("Error opening license file: ", err, ". You will need to manually place your license file in your installation."))
 		}
 		defer src.Close()
 
 		dest, err := os.Create(destPath)
 		if err != nil {
-			fmt.Println(redText("Error creating destination file: ", err, " You will need to manually place your license file in your installation."))
+			fmt.Println(redText("Error creating destination file: ", err, ". You will need to manually place your license file in your installation."))
 		}
 		defer dest.Close()
 
 		_, err = io.Copy(dest, src)
 		if err != nil {
-			fmt.Println(redText("Error copying license file: ", err, " You will need to manually place your license file in your installation."))
+			fmt.Println(redText("Error copying license file: ", err, ". You will need to manually place your license file in your installation."))
 		}
 	}
 
@@ -635,6 +641,7 @@ func main() {
 	for {
 		fmt.Println("Installation finished! Press the Enter/Return key to close this window.")
 
+		rl.SetPrompt("")
 		_, err = readUserInput(rl)
 		if err != nil {
 			if err.Error() == "Interrupt" {
@@ -693,8 +700,9 @@ func readUserInput(rl *readline.Instance) (string, error) {
 		return "", err
 	}
 	line = strings.TrimSpace(line)
+	line = os.ExpandEnv(line)
 
-	// We want to separate the lowercase version for just exiting and quiting, since it'll otherwise affect product name input.
+	// We want to separate the lowercase version for just exiting and quitting, since it'll otherwise affect product name input.
 	lineLower := strings.ToLower(line)
 
 	if lineLower == "exit" || lineLower == "quit" {
@@ -739,8 +747,6 @@ func (cw *customWriter) Write(p []byte) (n int, err error) {
 	}
 	if strings.Contains(output, "Starting install") {
 		fmt.Fprintln(cw.writer, "Installation has begun. Please wait while it finishes. There is no progress indicator.")
-	} else if strings.Contains(output, "Installition complete") {
-		// This line is redundant since I'm already saying and I like how I say it better!
 	}
 	return n, nil
 }
