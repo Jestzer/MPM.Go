@@ -5,4 +5,4 @@ Windows
 mpm
 .DS_Store
 mpm-go*
-_debug*
+__debug*
