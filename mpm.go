@@ -648,7 +648,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("Installation finished! Press the Enter/Return key to close this window.")
+	fmt.Println("Installation finished! Press the Enter/Return key to close this program.")
 	ExitHelper()
 }
 
