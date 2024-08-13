@@ -6,3 +6,4 @@ mpm
 .DS_Store
 mpm-go*
 __debug*
+*.zip

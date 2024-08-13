@@ -129,8 +129,8 @@ func main() {
 		mpmURL = "https://www.mathworks.com/mpm/glnxa64/mpm"
 	default:
 		defaultTMP = "unknown"
-		fmt.Println(redText("Your operating system is unrecognized. Exiting."))
-		os.Exit(1)
+		fmt.Println(redText("Your operating system is unrecognized. Press Enter/Return on your keyboard to close this program."))
+		ExitHelper()
 	}
 
 	// Figure out where you want actual MPM to go.
@@ -200,8 +200,8 @@ func main() {
 					output, err := cmd.Output()
 					if err != nil {
 						fmt.Println(redText("Error checking MPM's file architecture: ", err, ". Please move or delete your existing copy of MPM from the selected directory before proceeding. "+
-							"You likely either have a corrputed copy of MPM or it is for Windows or Linux."))
-						os.Exit(1)
+							"You likely either have a corrputed copy of MPM or it is for Windows or Linux. Press Enter/Return on your keyboard to close this program."))
+						ExitHelper()
 					}
 					archInfo := string(output)
 
@@ -215,8 +215,8 @@ func main() {
 							mpmTypeIsMismatched = true
 						}
 					} else {
-						fmt.Println(redText("Error checking MPM's file architecture. Please move or delete your existing copy of MPM from the selected directory before proceeding."))
-						os.Exit(1)
+						fmt.Println(redText("Error checking MPM's file architecture. Please move or delete your existing copy of MPM from the selected directory before proceeding. Press Enter/Return on your keyboard to close this program."))
+						ExitHelper()
 					}
 				}
 				if mpmTypeIsMismatched {
@@ -240,8 +240,8 @@ func main() {
 				if overwriteMPM == "n" || overwriteMPM == "no" || overwriteMPM == "f" || overwriteMPM == "false" {
 					if mpmTypeIsMismatched { // Make up your mind. Do you want to use ARM or Intel?
 						fmt.Println(redText("You can't use a version of MPM that doesn't match the CPU architecture you selected. Please either select a different directory to download " +
-							"MPM or move your existing copy elsewhere. Exiting the program now."))
-						os.Exit(1)
+							"MPM or move your existing copy elsewhere. Press Enter/Return on your keyboard to close this program."))
+						ExitHelper()
 					} else {
 						fmt.Println("Skipping download.")
 						mpmDownloadNeeded = false
@@ -609,11 +609,11 @@ func main() {
 	if err != nil {
 		errString := err.Error()
 		if strings.Contains(errString, "mpm: no such file or directory") || strings.Contains(errString, "mpm.exe: no such file or directory") {
-			fmt.Println(redText("MPM was either moved, renamed, deleted, or you've lost permissions to access it. Exiting."))
+			fmt.Println(redText("MPM was either moved, renamed, deleted, or you've lost permissions to access it. Press the Enter/Return key to close this program."))
 		} else {
-			fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err, "."))
+			fmt.Println(redText("An error occurred during installation. See the error above for more information. ", err, ". Press the Enter/Return key to close this program."))
 		}
-		os.Exit(1)
+		ExitHelper()
 	}
 
 	// Create the licenses directory and the file specified, if you specified one.
@@ -648,22 +648,8 @@ func main() {
 		}
 	}
 
-	// For the double-clickers.
-	for {
-		fmt.Println("Installation finished! Press the Enter/Return key to close this window.")
-
-		rl.SetPrompt("")
-		_, err = readUserInput(rl)
-		if err != nil {
-			if err.Error() == "Interrupt" {
-				fmt.Println(redText("Exiting from user input."))
-			} else {
-				fmt.Println(redText("Error reading line: ", err))
-				continue
-			}
-		}
-		os.Exit(0)
-	}
+	fmt.Println("Installation finished! Press the Enter/Return key to close this window.")
+	ExitHelper()
 }
 
 // Function to download a file from the given URL and save it to the specified path.
@@ -760,4 +746,32 @@ func (cw *customWriter) Write(p []byte) (n int, err error) {
 		fmt.Fprintln(cw.writer, "Installation has begun. Please wait while it finishes. There is no progress indicator.")
 	}
 	return n, nil
+}
+
+// For the double-clickers.
+func ExitHelper() {
+	redText := color.New(color.FgRed).SprintFunc()
+	for {
+		rl, err := readline.NewEx(&readline.Config{
+			Prompt: "> ",
+			AutoComplete: readline.NewPrefixCompleter(
+				readline.PcItemDynamic(listFiles),
+			),
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		rl.SetPrompt("")
+		_, err = readUserInput(rl)
+		if err != nil {
+			if err.Error() == "Interrupt" {
+				fmt.Println(redText("Exiting from user input."))
+			} else {
+				fmt.Println(redText("Error reading line: ", err))
+				continue
+			}
+		}
+		os.Exit(0)
+	}
 }
