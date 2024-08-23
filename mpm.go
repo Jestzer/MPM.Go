@@ -53,6 +53,7 @@ func main() {
 	var mpmTypeIsMismatched bool = false
 	platform := runtime.GOOS
 	redText := color.New(color.FgRed).SprintFunc()
+	greenText := color.New(color.FgHiGreen).SprintFunc()
 
 	// Reader to make using the command line not suck.
 	rl, err := readline.NewEx(&readline.Config{
@@ -648,7 +649,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("Installation finished! Press the Enter/Return key to close this program.")
+	fmt.Println(greenText("Installation finished! Press the Enter/Return key to close this program."))
 	ExitHelper()
 }
 
