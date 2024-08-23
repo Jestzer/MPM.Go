@@ -476,8 +476,13 @@ func main() {
 
 		} else {
 			products = strings.Fields(productsInput)
-			if !checkProductsExist(products, allProducts) {
-				fmt.Println(redText("One or more of the products you entered do not exist. Please try again and check for any typos. Different products should be separated by spaces. Spaces in 1 product name should be replaced with underscores."))
+			missingProducts := checkProductsExist(products, allProducts)
+			if len(missingProducts) > 0 {
+				fmt.Println(redText("The following products do not exist:"))
+				for _, missingProduct := range missingProducts {
+					fmt.Println(redText("- " + missingProduct))
+				}
+				fmt.Println(redText("Please try again and check for any typos. Different products should be separated by spaces. Spaces in a product name should be replaced with underscores."))
 				continue
 			}
 		}
@@ -676,18 +681,19 @@ func downloadFile(url string, filePath string) error {
 }
 
 // Make sure the products you've specified exist.
-func checkProductsExist(inputProducts []string, availableProducts []string) bool {
+func checkProductsExist(inputProducts []string, availableProducts []string) []string {
 	productSet := make(map[string]struct{}, len(availableProducts))
 	for _, product := range availableProducts {
 		productSet[product] = struct{}{}
 	}
 
+	var missingProducts []string
 	for _, inputProduct := range inputProducts {
 		if _, exists := productSet[inputProduct]; !exists {
-			return false
+			missingProducts = append(missingProducts, inputProduct)
 		}
 	}
-	return true
+	return missingProducts
 }
 
 // Reading user input in a separate function allows me to accept input such as "quit" or "exit" without needing to repeat said code.
