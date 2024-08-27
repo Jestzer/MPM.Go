@@ -7,7 +7,7 @@ If you'd like to print the version number, add the argument "-version" when star
 
 Versions compiled are from the following platforms:
 
-- Windows 11
-- Pop!_OS 22.04
-- macOS Sonoma (ARM)
-- macOS Catalina, 10.15 (x64)
+- Pop!_OS 22.04 (x64)
+- CentOS 7.9 (x64)
+
+If you want a compiled released for Windows or macOS, please let me know.
