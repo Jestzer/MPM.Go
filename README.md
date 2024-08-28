@@ -9,5 +9,6 @@ Versions compiled are from the following platforms:
 
 - Pop!_OS 22.04 (x64)
 - CentOS 7.9 (x64)
+- macOS Sonoma (ARM)
 
-If you want a compiled released for Windows or macOS, please let me know.
+If you want a compiled released for Windows or macOS x64, please let me know.
