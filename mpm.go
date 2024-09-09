@@ -292,16 +292,16 @@ func main() {
 	// Ask the user which release they'd like to install.
 	if platform == "macOSARM" {
 		validReleases = []string{
-			"R2023b", "R2024a",
+			"R2023b", "R2024a", "R2024b",
 		}
 	} else {
 		validReleases = []string{
 			"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
-			"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a",
+			"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b",
 		}
 	}
 
-	defaultRelease := "R2024a"
+	defaultRelease := "R2024b"
 
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
@@ -339,7 +339,7 @@ func main() {
 		if platform == "macOSARM" {
 			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2024a."))
 		} else {
-			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024a."))
+			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024b."))
 		}
 	}
 
