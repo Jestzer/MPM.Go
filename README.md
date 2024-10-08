@@ -12,3 +12,6 @@ Versions compiled are from the following platforms:
 - macOS Sonoma (ARM)
 
 If you want a compiled released for Windows or macOS x64, please let me know.
+
+To-do:
+- Prompt for admin rights when using Windows
