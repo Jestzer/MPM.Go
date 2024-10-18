@@ -266,7 +266,7 @@ func main() {
 			err = downloadFile(mpmURL, fileName)
 			if err != nil {
 				fmt.Println(redText("Failed to download MPM. ", err))
-				continue
+				os.Exit(1)
 			}
 			fmt.Println("MPM downloaded successfully.")
 		}
