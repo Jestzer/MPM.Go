@@ -125,6 +125,17 @@ func main() {
 	case "windows":
 		defaultTMP = os.Getenv("TMP")
 		mpmURL = "https://www.mathworks.com/mpm/win64/mpm"
+
+		admin, err := hasAdminRights()
+		if err != nil {
+			fmt.Println(redText("Error checking for administrator rights. This program must be run as an administrator.", err))
+			os.Exit(1)
+		}
+		if !admin {
+			fmt.Println(redText("Error: This program must be run as an administrator."))
+			os.Exit(1)
+		}
+
 	case "linux":
 		defaultTMP = "/tmp"
 		mpmURL = "https://www.mathworks.com/mpm/glnxa64/mpm"
@@ -658,7 +669,32 @@ func main() {
 	ExitHelper()
 }
 
-// Function to download a file from the given URL and save it to the specified path.
+func hasAdminRights() (bool, error) {
+
+	// Find out where Windows is installed.
+	winDir := os.Getenv("WINDIR")
+	if winDir == "" {
+		return false, fmt.Errorf("windir environment variable not found")
+	}
+
+	// Extract the root drive (e.g., "C:\").
+	rootDir := filepath.VolumeName(winDir) + `\`
+
+	testFile := filepath.Join(rootDir, "admin_test")
+	file, err := os.Create(testFile)
+	if err != nil {
+		return false, nil // You don't have admin rights!
+	}
+	file.Close()
+
+	err = os.Remove(testFile)
+	if err != nil {
+		return false, fmt.Errorf("failed to delete test file: %w", err) // How awkward would that be??
+	}
+
+	return true, nil
+}
+
 func downloadFile(url string, filePath string) error {
 	response, err := http.Get(url)
 	if err != nil {
