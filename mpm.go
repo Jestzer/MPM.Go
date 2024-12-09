@@ -44,7 +44,7 @@ func main() {
 	args := os.Args[1:]
 	for _, arg := range args {
 		if arg == "-version" {
-			fmt.Println("Version number: 1.3")
+			fmt.Println("Version number: 1.4")
 			os.Exit(0)
 		}
 	}
@@ -337,7 +337,7 @@ func main() {
 		}
 
 		if platform == "macOSARM" {
-			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2024a."))
+			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2024b."))
 		} else {
 			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024b."))
 		}
@@ -364,7 +364,7 @@ func main() {
 		// This is to ensure the products you're specifying exist or that a full list is assembled if you decide to install everything.
 		// Notes:
 		// - No oldProductsToAdd is needed for macOSARM at the moment.
-		// - No new products were added in R2024a for any release, so they are ommitted entries.
+		// - No new products were added in R2024a nor R2024b for any release, so they are ommitted entries.
 
 		// new products to add
 		if platform == "windows" {
