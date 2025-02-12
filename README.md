@@ -15,3 +15,4 @@ If you want a compiled released for Windows or macOS x64, please let me know.
 
 To-do:
 - Prompt for admin rights when using Windows
+- Separate all MATLAB products from all Polyspace products to avoid issues later on (such as when updating)
