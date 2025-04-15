@@ -14,5 +14,6 @@ Versions compiled are from the following platforms:
 If you want a compiled released for Windows or macOS x64, please let me know.
 
 To-do:
+- Fix issue where using ~ to specify the home directory DOES work on the installation step, but creates the directory after specifying it in your working directory. Ex: specifying ~/matlab will create the directories ~/matlab in your current working directory, but will actually install to ~/matlab.
 - Prompt for admin rights when using Windows
 - Separate all MATLAB products from all Polyspace products to avoid issues later on (such as when updating)
