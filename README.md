@@ -5,13 +5,7 @@ Usage: run the program by either double-clicking on it (if your setup supports t
 
 If you'd like to print the version number, add the argument "-version" when starting the program.
 
-Versions compiled are from the following platforms:
-
-- Pop!_OS 22.04 (x64)
-- CentOS 7.9 (x64)
-- macOS Sonoma (ARM)
-
-If you want a compiled released for Windows or macOS x64, please let me know.
+If you want a compiled released for a platform that is not listed in the Releases, please let me know (ex: Windows 11, macOS, Arch Linux, etc.)
 
 To-do:
 - Fix issue where using ~ to specify the home directory DOES work on the installation step, but creates the directory after specifying it in your working directory. Ex: specifying ~/matlab will create the directories ~/matlab in your current working directory, but will actually install to ~/matlab.
