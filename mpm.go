@@ -44,7 +44,7 @@ func main() {
 	args := os.Args[1:]
 	for _, arg := range args {
 		if arg == "-version" {
-			fmt.Println("Version number: 1.3")
+			fmt.Println("Version number: 1.4")
 			os.Exit(0)
 		}
 	}
