@@ -303,16 +303,16 @@ func main() {
 	// Ask the user which release they'd like to install.
 	if platform == "macOSARM" {
 		validReleases = []string{
-			"R2023b", "R2024a", "R2024b",
+			"R2023b", "R2024a", "R2024b", "R2025a",
 		}
 	} else {
 		validReleases = []string{
 			"R2017b", "R2018a", "R2018b", "R2019a", "R2019b", "R2020a", "R2020b",
-			"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b",
+			"R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b", "R2025a",
 		}
 	}
 
-	defaultRelease := "R2024b"
+	defaultRelease := "R2025a"
 
 	for {
 		fmt.Printf("Enter which release you would like to install. Press Enter to select %s: ", defaultRelease)
@@ -348,9 +348,9 @@ func main() {
 		}
 
 		if platform == "macOSARM" {
-			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2024b."))
+			fmt.Println(redText("Invalid release. Enter a release between R2023b-R2025a."))
 		} else {
-			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2024b."))
+			fmt.Println(redText("Invalid release. Enter a release between R2017b-R2025a."))
 		}
 	}
 
@@ -377,9 +377,10 @@ func main() {
 		// - No oldProductsToAdd is needed for macOSARM at the moment.
 		// - No new products were added in R2024a nor R2024b for any release, so they are ommitted entries.
 
-		// new products to add
+		// Let's start with defining the "new" products to add.
 		if platform == "windows" {
 			newProductsToAdd = map[string]string{
+				"R2025a": "",
 				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
 				"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
 				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
@@ -397,6 +398,7 @@ func main() {
 
 		} else if platform == "linux" {
 			newProductsToAdd = map[string]string{
+				"R2025a": "",
 				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test Simulink_Desktop_Real-Time",
 				"R2023a": "MATLAB_Test C2000_Microcontroller_Blockset",
 				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
@@ -414,6 +416,7 @@ func main() {
 
 		} else if platform == "macOSx64" {
 			newProductsToAdd = map[string]string{
+				"R2025a": "",
 				"R2023b": "Simulink_Fault_Analyzer Polyspace_Test",
 				"R2023a": "MATLAB_Test",
 				"R2022b": "Medical_Imaging_Toolbox Simscape_Battery",
@@ -431,6 +434,7 @@ func main() {
 
 		} else if platform == "macOSARM" {
 			newProductsToAdd = map[string]string{
+				"R2025a": "",
 				"R2023b": "5G_Toolbox AUTOSAR_Blockset Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_Toolbox Automated_Driving_Toolbox Bioinformatics_Toolbox Bluetooth_Toolbox Communications_Toolbox Computer_Vision_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DDS_Blockset DSP_HDL_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Deep_Learning_Toolbox Econometrics_Toolbox Embedded_Coder Filter_Design_HDL_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox Global_Optimization_Toolbox HDL_Coder Image_Acquisition_Toolbox Image_Processing_Toolbox Industrial_Communication_Toolbox Instrument_Control_Toolbox LTE_Toolbox Lidar_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Report_Generator MATLAB_Test Mapping_Toolbox Medical_Imaging_Toolbox Mixed-Signal_Blockset Model_Predictive_Control_Toolbox Motor_Control_Blockset Navigation_Toolbox Network_License_Manager Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Powertrain_Blockset Predictive_Maintenance_Toolbox RF_Blockset RF_PCB_Toolbox RF_Toolbox ROS_Toolbox Radar_Toolbox Reinforcement_Learning_Toolbox Requirements_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Satellite_Communications_Toolbox Sensor_Fusion_and_Tracking_Toolbox SerDes_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Battery Simscape_Driveline Simscape_Electrical Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Compiler Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Fault_Analyzer Simulink_PLC_Coder Simulink_Report_Generator Simulink_Test Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Composer System_Identification_Toolbox Text_Analytics_Toolbox UAV_Toolbox Vehicle_Dynamics_Blockset WLAN_Toolbox Wavelet_Toolbox Wireless_HDL_Toolbox",
 			}
 		}
