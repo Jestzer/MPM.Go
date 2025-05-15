@@ -693,7 +693,7 @@ func hasAdminRights() (bool, error) {
 
 	err = os.Remove(testFile)
 	if err != nil {
-		return false, fmt.Errorf("failed to delete test file: %w", err) // How awkward would that be??
+		return false, fmt.Errorf("failed to delete file made when testing admin rights: %w", err) // How awkward would that be??
 	}
 
 	return true, nil
