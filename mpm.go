@@ -488,10 +488,10 @@ func main() {
 		// Determine the products we'll actually be using with MPM.
 		if productsInput == "" {
 			products = allProducts
-		} else if productsInput == "parallel_products" {
-
+		} else if productsInput == "parallel_products" && release != "R2018b" && release != "R2018a" && release != "R2017b" {
 			products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
-
+		} else if productsInput == "parallel_products" && release == "R2018b" || release == "R2018a" || release == "R2017b" {
+			products = []string{"MATLAB", "Parallel_Computing_Toolbox", "MATLAB_Parallel_Server"}
 		} else {
 			products = strings.Fields(productsInput)
 			missingProducts := checkProductsExist(products, allProducts)
