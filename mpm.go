@@ -652,8 +652,8 @@ func main() {
 		err := os.Mkdir(licensesInstallationDirectory, 0755)
 
 		// The licenses directory may already exist if we're installation toolboxes into an existing installation of a base product, in which case, we'll ignore the error produced.
-		errString := err.Error()
 		if err != nil {
+			errString := err.Error()
 			if !strings.Contains(errString, "file exists") {
 				fmt.Println(redText("Error creating \"licenses\" directory: ", err, ". You will need to manually place your license file in your installation."))
 			}
